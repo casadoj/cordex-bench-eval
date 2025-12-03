@@ -1,0 +1,16 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.so
+.Python
+*.pyo
+*.pyd
+
+# Packaging / build outputs
+build/
+dist/
+*.egg-info/
+
+# Local data
+data/**/*
+
