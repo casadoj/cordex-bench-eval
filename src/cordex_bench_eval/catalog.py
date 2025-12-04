@@ -62,3 +62,7 @@ class SubmissionCatalog:
     def all_entries(self) -> Iterable[CatalogEntry]:
         return self._data.values()
 
+    def get(self, name: str) -> CatalogEntry | None:
+        """Return a catalog entry by name if it exists."""
+        return self._data.get(name)
+

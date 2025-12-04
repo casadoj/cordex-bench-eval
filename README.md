@@ -37,3 +37,39 @@ python main.py
 
 Feel free to copy that snippet into your own runner so you can plug additional validation or scoring steps right after ingestion. Downstream tools can always read `catalog_path` to know where each submission lives.
 
+## Loading staged data
+
+Once a submission is registered you can reach any NetCDF file by domain / experiment / variable
+through `SubmissionDataLoader`:
+
+```
+from cordex_bench_eval import SubmissionCatalog, SubmissionDataLoader
+
+catalog = SubmissionCatalog("/data/catalog/submissions.json")
+loader = SubmissionDataLoader(catalog)
+
+print("Domains:", loader.available_domains("DeepESD-v1_IFCA_m1"))
+print("Experiments:", loader.available_experiments("DeepESD-v1_IFCA_m1", "ALPS_Domain"))
+print("Variables:", loader.available_variables("DeepESD-v1_IFCA_m1", "ALPS_Domain", "Emulator_Hist_Future_NO_OROG"))
+print("Predictions:", loader.available_predictions(
+    "DeepESD-v1_IFCA_m1",
+    "ALPS_Domain",
+    "Emulator_Hist_Future_NO_OROG",
+    "pr",
+))
+
+ds = loader.load_dataset(
+    submission_name="DeepESD-v1_IFCA_m1",
+    domain="ALPS_Domain",
+    experiment="Emulator_Hist_Future_NO_OROG",
+    variable="pr",
+    prediction="Extrapolation_perfect",  # omit if there is only one .nc file
+)
+print(ds)
+```
+
+`load_dataset()` wraps `xarray.open_dataset()` so you can pass any keyword argument it understands
+(e.g. `decode_cf=False`). When a variable folder contains multiple NetCDF files, provide the
+``prediction`` name without the `predictions_` prefix or `.nc` suffix. Use the helper methods above
+to discover the available domains, experiments, variables, and predictions exposed by a submission.
+
