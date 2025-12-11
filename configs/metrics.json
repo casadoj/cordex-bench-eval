@@ -1,0 +1,72 @@
+{
+  "metrics": {
+    "rmse": {
+      "type": "rmse",
+      "dim": null
+    },
+    "rmse_spatial": {
+      "type": "rmse",
+      "dim": ["lat", "lon"]
+    },
+    "mean_bias": {
+      "type": "bias_index",
+      "index_fn": "evaluation.indices.mean"
+    },
+    "cdd_bias": {
+      "type": "bias_index",
+      "index_fn": "evaluation.indices.cdd",
+      "kwargs": {
+        "dry_threshold": 1.0
+      }
+    },
+    "cwd_bias": {
+      "type": "bias_index",
+      "index_fn": "evaluation.indices.cwd",
+      "kwargs": {
+        "wet_threshold": 1.0
+      }
+    },
+    "sdii_ratio": {
+      "type": "ratio_index",
+      "index_fn": "evaluation.indices.sdii",
+      "kwargs": {
+        "wet_threshold": 1.0
+      }
+    },
+    "rx1day_bias": {
+      "type": "bias_index",
+      "index_fn": "evaluation.indices.rx1day"
+    },
+    "txx_bias": {
+      "type": "bias_index",
+      "index_fn": "evaluation.indices.txx"
+    },
+    "txn_bias": {
+      "type": "bias_index",
+      "index_fn": "evaluation.indices.txn"
+    },
+    "su_bias": {
+      "type": "bias_index",
+      "index_fn": "evaluation.indices.su",
+      "kwargs": {
+        "threshold": 25.0
+      }
+    },
+    "psd": {
+      "type": "psd"
+    },
+    "lag1_corr_bias": {
+      "type": "bias_index",
+      "index_fn": "evaluation.indices.lag1_corr"
+    },
+    "interannual_var_bias": {
+      "type": "bias_index",
+      "index_fn": "evaluation.indices.interannual_var"
+    }
+  },
+  "defaults": {
+    "pr": ["rmse", "cdd_bias", "sdii_ratio", "rx1day_bias"],
+    "tasmax": ["rmse", "txx_bias", "su_bias"]
+  }
+}
+

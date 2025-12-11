@@ -1,75 +1,238 @@
-# CORDEX Bench Evaluation Utilities
+# CORDEX Benchmark Evaluation
 
-This repository hosts modular pieces of the CORDEX-ML benchmark evaluation workflow. The initial milestone focuses on tracking and staging model submissions that arrive as `.zip` archives.
+A toolkit for evaluating deep learning model predictions against ground truth data in the CORDEX-ML benchmark.
 
-## Submission staging workflow
+## Overview
 
-1. Monitor an **incoming** directory for submission archives.
-2. Extract every new archive into a configurable **staging** directory using a folder that matches the archive name.
-3. Register the staged submission in a lightweight **catalog** (including submission metadata read from the NetCDF global attributes `esd_method_id`, `esd_method_version`, and `training_methodology_id`) so later workflow steps can discover it.
+This package provides a complete workflow for:
 
-The logic lives inside `cordex_bench_eval.submission_handler`. Compose it inside your own orchestration code (see `main.py`) to stage submissions however you like—cron, notebooks, or ad-hoc scripts.
-
-### Example configuration
+1. **Ingesting** submission archives (`.zip` files) from participants
+2. **Loading** prediction and ground truth datasets
+3. **Evaluating** predictions using configurable metrics (RMSE, bias indices, etc.)
 
 ```
+┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+│   Incoming   │ ───► │   Staging    │ ───► │  Evaluation  │
+│   (.zip)     │      │   (NetCDF)   │      │  (metrics)   │
+└──────────────┘      └──────────────┘      └──────────────┘
+        │                    │                     │
+        ▼                    ▼                     ▼
+   catalog.json      SubmissionDataLoader    diagnostics/*.nc
+```
+
+## Installation
+
+```bash
+pip install -e .
+```
+
+## Quick Start
+
+```python
+from cordex_bench_eval import (
+    SubmissionCatalog,
+    SubmissionDataLoader,
+    GroundTruthDataLoader,
+    Evaluator,
+)
+from cordex_bench_eval.config import load_config_file
+
+# Load configuration
+config = load_config_file("configs/config.json")
+
+# Load a prediction dataset
+catalog = SubmissionCatalog(config.catalog_path)
+loader = SubmissionDataLoader(catalog)
+
+ds = loader.load_dataset(
+    submission_name="DeepESD-v1_IFCA_m1",
+    domain="ALPS_Domain",
+    experiment="Emulator_Hist_Future",
+    use_orography=True,
+    variable="pr",
+    prediction="Extrapolation_perfect",
+)
+
+# Run evaluation
+evaluator = Evaluator(
+    config=config,
+    catalog=catalog,
+    metrics_registry_path="configs/metrics.json",
+    ml_benchmark_path=config.mlbenchmark_path,
+)
+
+results = evaluator.evaluate(
+    submission_name="DeepESD-v1_IFCA_m1",
+    domain="ALPS_Domain",
+    experiment="Emulator_Hist_Future",
+    variable="pr",
+    prediction="Extrapolation_perfect",
+    use_orography=True,
+)
+# Results are saved as NetCDF files and returned as a dict of xr.Dataset
+```
+
+## Workflow Steps
+
+### 1. Ingest Submissions
+
+Place `.zip` archives in the `incoming` directory, then run:
+
+```python
+from cordex_bench_eval import SubmissionHandler
+from cordex_bench_eval.config import load_config_file
+
+config = load_config_file("configs/config.json")
+handler = SubmissionHandler(config)
+ingested = handler.ingest()
+
+print(f"Ingested {len(ingested)} submissions")
+```
+
+This extracts archives to `staging/` and registers them in `catalog.json` with metadata from NetCDF attributes.
+
+### 2. Load Prediction Data
+
+```python
+from cordex_bench_eval import SubmissionCatalog, SubmissionDataLoader
+
+catalog = SubmissionCatalog("catalog/catalog.json")
+loader = SubmissionDataLoader(catalog)
+
+# Explore what's available
+print(loader.available_domains("DeepESD-v1_IFCA_m1"))
+print(loader.available_experiments("DeepESD-v1_IFCA_m1", "ALPS_Domain"))
+print(loader.available_variables("DeepESD-v1_IFCA_m1", "ALPS_Domain", "Emulator_Hist_Future_OROG"))
+print(loader.available_predictions("DeepESD-v1_IFCA_m1", "ALPS_Domain", "Emulator_Hist_Future_OROG", "pr"))
+
+# Load a dataset
+ds = loader.load_dataset(
+    submission_name="DeepESD-v1_IFCA_m1",
+    domain="ALPS_Domain",
+    experiment="Emulator_Hist_Future",
+    use_orography=True,      # Appends _OROG to experiment name
+    variable="pr",
+    prediction="Extrapolation_perfect",
+)
+```
+
+### 3. Load Ground Truth Data
+
+```python
+from cordex_bench_eval import GroundTruthDataLoader
+
+gt_loader = GroundTruthDataLoader("data/target")
+
+# Training data
+ds_train = gt_loader.load_train_target(
+    domain="ALPS",
+    training_experiment="Emulator_hist_future",
+    variable="pr",
+)
+
+# Test data (for evaluation)
+ds_test = gt_loader.load_test_target(
+    domain="ALPS",
+    training_experiment="Emulator_hist_future",
+    evaluation_experiment="Extrapolation_perfect",
+    variable="pr",
+)
+```
+
+### 4. Run Evaluation
+
+```python
+from cordex_bench_eval import Evaluator
+
+evaluator = Evaluator(
+    config=config,
+    catalog=catalog,
+    metrics_registry_path="configs/metrics.json",
+    ml_benchmark_path="/path/to/ml-benchmark",
+)
+
+# Compute metrics (uses defaults from metrics.json)
+results = evaluator.evaluate(
+    submission_name="DeepESD-v1_IFCA_m1",
+    domain="ALPS_Domain",
+    experiment="Emulator_Hist_Future",
+    variable="pr",
+    prediction="Extrapolation_perfect",
+    use_orography=True,
+)
+
+# Or specify which metrics to compute
+results = evaluator.evaluate(
+    ...,
+    metrics=["rmse", "cdd_bias", "rx1day_bias"],
+)
+
+# Load a previously computed metric
+rmse = evaluator.load_metric(
+    submission_name="DeepESD-v1_IFCA_m1",
+    domain="ALPS_Domain",
+    experiment="Emulator_Hist_Future",
+    variable="pr",
+    prediction="Extrapolation_perfect",
+    metric_name="rmse",
+    use_orography=True,
+)
+```
+
+## Configuration
+
+### `configs/config.json`
+
+```json
 {
-  "incoming_dir": "/data/incoming",
-  "staging_dir": "/data/staging",
-  "catalog_path": "/data/catalog/submissions.json",
+  "groundtruth_path": "data/target",
+  "incoming_path": "data/incoming",
+  "staging_path": "data/staging",
+  "catalog_path": "catalog/catalog.json",
+  "diagnostic_path": "data/diagnostics",
+  "mlbenchmark_path": "/path/to/ml-benchmark",
   "archive_extensions": [".zip"],
   "overwrite_existing": false
 }
 ```
 
-### Usage
+### `configs/metrics.json`
 
-```
-python -m pip install -e .
-python main.py
-```
+Defines available metrics and defaults per variable:
 
-`main.py` is a minimal example that:
-
-1. Loads the JSON config via `load_config_file`.
-2. Instantiates `SubmissionHandler`.
-3. Calls `ingest()`, which stages submissions and captures the NetCDF attributes (`esd_method_id`, `esd_method_version`, `training_methodology_id`) from the first file it finds.
-
-Feel free to copy that snippet into your own runner so you can plug additional validation or scoring steps right after ingestion. Downstream tools can always read `catalog_path` to know where each submission lives.
-
-## Loading staged data
-
-Once a submission is registered you can reach any NetCDF file by domain / experiment / variable
-through `SubmissionDataLoader`:
-
-```
-from cordex_bench_eval import SubmissionCatalog, SubmissionDataLoader
-
-catalog = SubmissionCatalog("/data/catalog/submissions.json")
-loader = SubmissionDataLoader(catalog)
-
-print("Domains:", loader.available_domains("DeepESD-v1_IFCA_m1"))
-print("Experiments:", loader.available_experiments("DeepESD-v1_IFCA_m1", "ALPS_Domain"))
-print("Variables:", loader.available_variables("DeepESD-v1_IFCA_m1", "ALPS_Domain", "Emulator_Hist_Future_NO_OROG"))
-print("Predictions:", loader.available_predictions(
-    "DeepESD-v1_IFCA_m1",
-    "ALPS_Domain",
-    "Emulator_Hist_Future_NO_OROG",
-    "pr",
-))
-
-ds = loader.load_dataset(
-    submission_name="DeepESD-v1_IFCA_m1",
-    domain="ALPS_Domain",
-    experiment="Emulator_Hist_Future_NO_OROG",
-    variable="pr",
-    prediction="Extrapolation_perfect",  # omit if there is only one .nc file
-)
-print(ds)
+```json
+{
+  "metrics": {
+    "rmse": { "type": "rmse" },
+    "cdd_bias": { "type": "bias_index", "index_fn": "evaluation.indices.cdd" },
+    ...
+  },
+  "defaults": {
+    "pr": ["rmse", "cdd_bias", "sdii_ratio", "rx1day_bias"],
+    "tasmax": ["rmse", "txx_bias", "su_bias"]
+  }
+}
 ```
 
-`load_dataset()` wraps `xarray.open_dataset()` so you can pass any keyword argument it understands
-(e.g. `decode_cf=False`). When a variable folder contains multiple NetCDF files, provide the
-``prediction`` name without the `predictions_` prefix or `.nc` suffix. Use the helper methods above
-to discover the available domains, experiments, variables, and predictions exposed by a submission.
+## Directory Structure
 
+```
+cordex-bench-eval/
+├── configs/
+│   ├── config.json          # Paths configuration
+│   └── metrics.json         # Metrics definitions
+├── catalog/
+│   └── catalog.json         # Registry of ingested submissions
+├── data/
+│   ├── incoming/            # Drop .zip files here
+│   ├── staging/             # Extracted submissions
+│   ├── target/              # Ground truth data
+│   └── diagnostics/         # Computed metrics output
+├── src/cordex_bench_eval/
+│   ├── config.py            # Configuration loading
+│   ├── catalog.py           # Submission catalog
+│   ├── submission_handler.py # Archive ingestion
+│   ├── data_loader.py       # Data loading utilities
+│   └── evaluator.py         # Metrics computation
+└── main.py                  # Example usage
+```
