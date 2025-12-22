@@ -3,7 +3,7 @@ Data loaders for submissions and ground truth.
 
 This module provides two main loaders:
 - SubmissionDataLoader: Load prediction NetCDF files from staged submissions
-- GroundTruthDataLoader: Load ground truth data for training and testing
+- GroundTruthDataLoader: Load ground truth data for training and testing experiments
 """
 
 from __future__ import annotations
@@ -12,14 +12,7 @@ from pathlib import Path
 from typing import Any, List
 
 import xarray as xr
-
 from .catalog import SubmissionCatalog
-
-
-# =============================================================================
-# SUBMISSION DATA LOADER
-# =============================================================================
-
 
 class SubmissionDataLoader:
     """
@@ -32,20 +25,6 @@ class SubmissionDataLoader:
     ----------
     catalog : SubmissionCatalog
         Catalog containing registered submissions.
-    
-    Example
-    -------
-    >>> loader = SubmissionDataLoader(catalog)
-    >>> print(loader.available_domains("DeepESD-v1_IFCA_m1"))
-    ['ALPS_Domain', 'NZ_Domain', 'SA_Domain']
-    >>> ds = loader.load_dataset(
-    ...     submission_name="DeepESD-v1_IFCA_m1",
-    ...     domain="ALPS_Domain",
-    ...     experiment="Emulator_Hist_Future",
-    ...     use_orography=True,
-    ...     variable="pr",
-    ...     prediction="Extrapolation_perfect",
-    ... )
     """
 
     def __init__(self, catalog: SubmissionCatalog):
@@ -59,49 +38,26 @@ class SubmissionDataLoader:
         """List experiment folders within a domain."""
         domain_dir = self._entry_root(submission_name) / domain
         if not domain_dir.exists():
-            raise FileNotFoundError(
-                f"Domain '{domain}' does not exist for '{submission_name}'."
-            )
+            raise FileNotFoundError(f"Domain '{domain}' does not exist for '{submission_name}'.")
         return _list_dir_names(domain_dir)
 
-    def available_variables(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-    ) -> List[str]:
+    def available_variables(self, submission_name: str, domain: str, experiment: str) -> List[str]:
         """List variable folders within an experiment."""
         experiment_dir = self._entry_root(submission_name) / domain / experiment
         if not experiment_dir.exists():
-            raise FileNotFoundError(
-                f"Experiment '{experiment}' under '{domain}' does not exist "
-                f"for '{submission_name}'."
-            )
+            raise FileNotFoundError(f"Experiment '{experiment}' under '{domain}' does not exist "
+                                    f"for '{submission_name}'.")
         return _list_dir_names(experiment_dir)
 
-    def available_predictions(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-        variable: str,
-    ) -> List[str]:
+    def available_predictions(self, submission_name: str, domain: str, experiment: str,
+                              variable: str) -> List[str]:
         """List available predictions (derived from filenames) for a variable."""
         target_dir = self._target_dir(submission_name, domain, experiment, variable)
-        return [
-            _normalize_prediction_name(path.name)
-            for path in sorted(target_dir.glob("*.nc"))
-        ]
+        return [_normalize_prediction_name(path.name)
+                for path in sorted(target_dir.glob("*.nc"))]
 
-    def dataset_path(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-        variable: str,
-        prediction: str | None = None,
-        use_orography: bool | None = None,
-    ) -> Path:
+    def dataset_path(self, submission_name: str, domain: str, experiment: str, variable: str,
+                     prediction: str | None = None, use_orography: bool | None = None) -> Path:
         """
         Get the path to a NetCDF file.
         
@@ -131,16 +87,9 @@ class SubmissionDataLoader:
         target_dir = self._target_dir(submission_name, domain, experiment_name, variable)
         return self._select_prediction_file(target_dir, prediction)
 
-    def load_dataset(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-        variable: str,
-        prediction: str | None = None,
-        use_orography: bool | None = None,
-        **open_kwargs: Any,
-    ) -> xr.Dataset:
+    def load_dataset(self, submission_name: str, domain: str, experiment: str, variable: str,
+                     prediction: str | None = None, use_orography: bool | None = None,
+                     **open_kwargs: Any) -> xr.Dataset:
         """
         Load a prediction dataset.
         
@@ -166,9 +115,8 @@ class SubmissionDataLoader:
         xr.Dataset
             Loaded xarray dataset.
         """
-        path = self.dataset_path(
-            submission_name, domain, experiment, variable, prediction, use_orography
-        )
+        path = self.dataset_path(submission_name, domain, experiment, variable,
+                                 prediction, use_orography)
         return xr.open_dataset(path, **open_kwargs)
 
     def _entry_root(self, submission_name: str) -> Path:
@@ -181,13 +129,7 @@ class SubmissionDataLoader:
             raise FileNotFoundError(f"Submission folder '{root}' does not exist.")
         return root
 
-    def _target_dir(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-        variable: str,
-    ) -> Path:
+    def _target_dir(self, submission_name: str, domain: str, experiment: str, variable: str) -> Path:
         """Get the directory containing prediction files."""
         target_dir = self._entry_root(submission_name) / domain / experiment / variable
         if not target_dir.exists():
@@ -205,10 +147,8 @@ class SubmissionDataLoader:
             if len(nc_files) == 1:
                 return nc_files[0]
             available = ", ".join(_normalize_prediction_name(p.name) for p in nc_files)
-            raise ValueError(
-                f"Multiple NetCDF files in {target_dir}. "
-                f"Specify prediction (available: {available})."
-            )
+            raise ValueError(f"Multiple NetCDF files in {target_dir}. "
+                             f"Specify prediction (available: {available}).")
 
         # Find matching file
         normalized = _normalize_prediction_name(prediction)
@@ -217,10 +157,8 @@ class SubmissionDataLoader:
                 return path
 
         available = ", ".join(_normalize_prediction_name(p.name) for p in nc_files)
-        raise FileNotFoundError(
-            f"No NetCDF file named '{prediction}' in {target_dir}. "
-            f"Available predictions: {available}."
-        )
+        raise FileNotFoundError(f"No NetCDF file named '{prediction}' in {target_dir}. "
+                                f"Available predictions: {available}.")
 
     @staticmethod
     def _resolve_experiment_name(experiment: str, use_orography: bool | None) -> str:
@@ -233,7 +171,6 @@ class SubmissionDataLoader:
         if use_orography is None:
             return experiment
 
-        # Strip existing suffix
         base = experiment
         for suffix in ("_OROG", "_NO_OROG"):
             if base.endswith(suffix):
@@ -241,12 +178,6 @@ class SubmissionDataLoader:
                 break
 
         return f"{base}_{'OROG' if use_orography else 'NO_OROG'}"
-
-
-# =============================================================================
-# GROUND TRUTH DATA LOADER
-# =============================================================================
-
 
 class GroundTruthDataLoader:
     """
@@ -260,16 +191,6 @@ class GroundTruthDataLoader:
     ----------
     root : str | Path
         Root directory containing ground truth data.
-    
-    Example
-    -------
-    >>> gt_loader = GroundTruthDataLoader("/data/target")
-    >>> ds = gt_loader.load_test_target(
-    ...     domain="ALPS",
-    ...     training_experiment="Emulator_hist_future",
-    ...     evaluation_experiment="Extrapolation_perfect",
-    ...     variable="pr",
-    ... )
     """
 
     def __init__(self, root: str | Path):
@@ -289,13 +210,8 @@ class GroundTruthDataLoader:
         """List available test periods for a domain."""
         return _list_dir_names(self._test_dir(domain))
 
-    def load_train_target(
-        self,
-        domain: str,
-        training_experiment: str,
-        variable: str | None = None,
-        **open_kwargs: Any,
-    ) -> xr.Dataset:
+    def load_train_target(self, domain: str, training_experiment: str,
+                          variable: str | None = None, **open_kwargs: Any) -> xr.Dataset:
         """
         Load training target data.
         
@@ -319,15 +235,9 @@ class GroundTruthDataLoader:
         ds = xr.open_dataset(path, **open_kwargs)
         return self._maybe_subset_variable(ds, variable)
 
-    def load_test_target(
-        self,
-        domain: str,
-        training_experiment: str,
-        evaluation_experiment: str,
-        variable: str | None = None,
-        merge_mid_end: bool = True,
-        **open_kwargs: Any,
-    ) -> xr.Dataset:
+    def load_test_target(self, domain: str, training_experiment: str, evaluation_experiment: str,
+                         variable: str | None = None, merge_mid_end: bool = True,
+                         **open_kwargs: Any) -> xr.Dataset:
         """
         Load test target data for evaluation.
         
@@ -351,9 +261,7 @@ class GroundTruthDataLoader:
         xr.Dataset
             Ground truth test dataset.
         """
-        period, _, same_gcm_as_train = self._resolve_experiment(
-            training_experiment, evaluation_experiment
-        )
+        period, _, same_gcm_as_train = self._resolve_experiment(training_experiment, evaluation_experiment)
         domain_key = _normalize_domain_key(domain)
         gcm_name = _GCM_TRAIN[domain_key] if same_gcm_as_train else _GCM_EVAL[domain_key]
 
@@ -370,9 +278,7 @@ class GroundTruthDataLoader:
             else:
                 ds = mid_ds
         else:
-            ds = xr.open_dataset(
-                self._test_target_path(domain, period, gcm_name), **open_kwargs
-            )
+            ds = xr.open_dataset(self._test_target_path(domain, period, gcm_name), **open_kwargs)
 
         return self._maybe_subset_variable(ds, variable)
 
@@ -441,10 +347,8 @@ class GroundTruthDataLoader:
             raise KeyError(f"Unknown training experiment '{training_experiment}'.")
         if evaluation_experiment not in _EVAL_SETTINGS[training_experiment]:
             available = ", ".join(sorted(_EVAL_SETTINGS[training_experiment]))
-            raise KeyError(
-                f"Experiment '{evaluation_experiment}' not supported for "
-                f"'{training_experiment}'. Available: {available}"
-            )
+            raise KeyError(f"Experiment '{evaluation_experiment}' not supported for "
+                           f"'{training_experiment}'. Available: {available}")
         return _EVAL_SETTINGS[training_experiment][evaluation_experiment]
 
     @staticmethod
@@ -456,16 +360,9 @@ class GroundTruthDataLoader:
             raise KeyError(f"Variable '{variable}' not found in dataset.")
         return ds[[variable]]
 
-
-# =============================================================================
-# UTILITY FUNCTIONS
-# =============================================================================
-
-
 def _list_dir_names(path: Path) -> List[str]:
     """List subdirectory names (not files) in a directory."""
     return [child.name for child in sorted(path.iterdir()) if child.is_dir()]
-
 
 def _normalize_prediction_name(value: str) -> str:
     """
@@ -481,7 +378,6 @@ def _normalize_prediction_name(value: str) -> str:
         name = name[len("predictions_"):]
     return name
 
-
 def _normalize_domain_key(domain: str) -> str:
     """
     Normalize domain strings to uppercase keys.
@@ -496,39 +392,31 @@ def _normalize_domain_key(domain: str) -> str:
     return value.upper()
 
 
-# =============================================================================
-# MAPPING TABLES
-# =============================================================================
+##################
+# MAPPING TABLES #
+##################
 
 # Training periods by experiment type
-_TRAIN_PERIODS = {
-    "Emulator_hist_future": "1961-1980_2080-2099",
-    "ESD_pseudo_reality": "1961-1980",
-}
+_TRAIN_PERIODS = {"Emulator_hist_future": "1961-1980_2080-2099",
+                  "ESD_pseudo_reality": "1961-1980"}
 
 # Date tags for test periods
-_PERIOD_DATES = {
-    "historical": "1981-2000",
-    "mid_century": "2041-2060",
-    "end_century": "2080-2099",
-    "mid_end_century": ["2041-2060", "2080-2099"],  # handled specially
-}
+_PERIOD_DATES = {"historical": "1981-2000",
+                 "mid_century": "2041-2060",
+                 "end_century": "2080-2099",
+                 "mid_end_century": ["2041-2060", "2080-2099"]}
 
 # GCM models used for training by domain
-_GCM_TRAIN = {
-    "NZ": "ACCESS-CM2",
-    "ALPS": "CNRM-CM5",
-    "SA": "ACCESS-CM2",
-}
+_GCM_TRAIN = {"NZ": "ACCESS-CM2",
+              "ALPS": "CNRM-CM5",
+              "SA": "ACCESS-CM2"}
 
-# GCM models used for evaluation (different from training)
-_GCM_EVAL = {
-    "NZ": "EC-Earth3",
-    "ALPS": "MPI-ESM-LR",
-    "SA": "NorESM2-MM",
-}
+# GCM models used for evaluation (hard-transferability)
+_GCM_EVAL = {"NZ": "EC-Earth3",
+             "ALPS": "MPI-ESM-LR",
+            "SA": "NorESM2-MM"}
 
-# Evaluation settings: training_experiment -> evaluation_experiment -> (period, type, same_gcm)
+# Evaluation settings: training_experiment -> evaluation_experiment -> (period, mode, same_gcm_as_train)
 _EVAL_SETTINGS = {
     "ESD_pseudo_reality": {
         "PP_cross_validation": ("historical", "perfect", True),

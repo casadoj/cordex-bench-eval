@@ -19,15 +19,9 @@ from .catalog import SubmissionCatalog
 from .config import SubmissionWorkflowConfig
 from .data_loader import GroundTruthDataLoader, SubmissionDataLoader
 
-
-# =============================================================================
-# EVALUATOR
-# =============================================================================
-
-
 class Evaluator:
     """
-    Compute evaluation metrics for model predictions.
+    Compute evaluation metrics for model predictions against ground truth data.
     
     Computes metrics defined in a JSON registry and saves each metric as a
     separate NetCDF file under the diagnostic_path directory.
@@ -42,32 +36,10 @@ class Evaluator:
         Path to JSON file defining available metrics.
     ml_benchmark_path : str | Path, optional
         Path to ml-benchmark evaluation module (adds to sys.path).
-    
-    Example
-    -------
-    >>> evaluator = Evaluator(
-    ...     config=config,
-    ...     catalog=catalog,
-    ...     metrics_registry_path="configs/metrics.json",
-    ...     ml_benchmark_path="/code/ml-benchmark",
-    ... )
-    >>> results = evaluator.evaluate(
-    ...     submission_name="DeepESD-v1_IFCA_m1",
-    ...     domain="ALPS_Domain",
-    ...     experiment="Emulator_Hist_Future",
-    ...     variable="pr",
-    ...     prediction="Extrapolation_perfect",
-    ...     use_orography=True,
-    ... )
     """
 
-    def __init__(
-        self,
-        config: SubmissionWorkflowConfig,
-        catalog: SubmissionCatalog,
-        metrics_registry_path: str | Path,
-        ml_benchmark_path: str | Path | None = None,
-    ):
+    def __init__(self, config: SubmissionWorkflowConfig, catalog: SubmissionCatalog,
+                 metrics_registry_path: str | Path, ml_benchmark_path: str | Path | None = None):
         if config.diagnostic_path is None:
             raise ValueError("diagnostic_path must be set in config.")
 
@@ -82,19 +54,9 @@ class Evaluator:
             import sys
             sys.path.insert(0, str(Path(ml_benchmark_path).expanduser().resolve()))
 
-    def evaluate(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-        variable: str,
-        prediction: str,
-        metrics: List[str] | None = None,
-        use_orography: bool | None = None,
-        season: str | None = None,
-        run_id: str | None = None,
-        **open_kwargs: Any,
-    ) -> dict[str, xr.Dataset]:
+    def evaluate(self, submission_name: str, domain: str, experiment: str, variable: str,
+                 prediction: str, metrics: List[str] | None = None, use_orography: bool | None = None,
+                 season: str | None = None, run_id: str | None = None, **open_kwargs: Any) -> dict[str, xr.Dataset]:
         """
         Compute metrics for a prediction and save results.
         
@@ -133,15 +95,10 @@ class Evaluator:
             metrics = self.metrics_registry.get("defaults", {}).get(variable, [])
 
         # Load and align datasets
-        pred_ds, gt_ds = self._load_and_align_datasets(
-            submission_name=submission_name,
-            domain=domain,
-            experiment=experiment,
-            variable=variable,
-            prediction=prediction,
-            use_orography=use_orography,
-            **open_kwargs,
-        )
+        pred_ds, gt_ds = self._load_and_align_datasets(submission_name=submission_name,
+                                                       domain=domain, experiment=experiment,
+                                                       variable=variable, prediction=prediction,
+                                                       use_orography=use_orography, **open_kwargs)
 
         # Compute each metric
         results = {}
@@ -150,26 +107,15 @@ class Evaluator:
                 raise ValueError(f"Unknown metric: {metric_name}")
 
             metric_config = self.metrics_registry["metrics"][metric_name]
-            metric_ds = self._compute_metric(
-                pred_ds=pred_ds,
-                gt_ds=gt_ds,
-                variable=variable,
-                metric_name=metric_name,
-                metric_config=metric_config,
-                season=season,
-            )
+            metric_ds = self._compute_metric(pred_ds=pred_ds, gt_ds=gt_ds, variable=variable,
+                                             metric_name=metric_name, metric_config=metric_config,
+                                             season=season)
 
             # Save metric to NetCDF
-            metric_path = self._metric_path(
-                submission_name=submission_name,
-                domain=domain,
-                experiment=experiment,
-                variable=variable,
-                prediction=prediction,
-                metric_name=metric_name,
-                run_id=run_id,
-                use_orography=use_orography,
-            )
+            metric_path = self._metric_path(submission_name=submission_name,
+                                            domain=domain, experiment=experiment, variable=variable,
+                                            prediction=prediction, metric_name=metric_name,
+                                            run_id=run_id, use_orography=use_orography)
             metric_path.parent.mkdir(parents=True, exist_ok=True)
             metric_ds.to_netcdf(metric_path)
 
@@ -177,15 +123,8 @@ class Evaluator:
 
         return results
 
-    def available_metric_files(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-        variable: str,
-        prediction: str,
-        use_orography: bool | None = None,
-    ) -> List[str]:
+    def available_metric_files(self, submission_name: str, domain: str, experiment: str, variable: str,
+                               prediction: str, use_orography: bool | None = None) -> List[str]:
         """
         List saved metric files for a prediction.
         
@@ -194,32 +133,18 @@ class Evaluator:
         list of str
             Metric filenames (without path).
         """
-        metric_dir = self._metric_dir(
-            submission_name=submission_name,
-            domain=domain,
-            experiment=experiment,
-            variable=variable,
-            prediction=prediction,
-            use_orography=use_orography,
-        )
+        metric_dir = self._metric_dir(submission_name=submission_name, domain=domain,
+                                      experiment=experiment, variable=variable,
+                                      prediction=prediction, use_orography=use_orography)
 
         if not metric_dir.exists():
             return []
 
         return sorted([f.name for f in metric_dir.glob("metric_*.nc")])
 
-    def load_metric(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-        variable: str,
-        prediction: str,
-        metric_name: str,
-        run_id: str | None = None,
-        use_orography: bool | None = None,
-        **open_kwargs: Any,
-    ) -> xr.Dataset:
+    def load_metric(self, submission_name: str, domain: str, experiment: str, variable: str,
+                    prediction: str, metric_name: str, run_id: str | None = None,
+                    use_orography: bool | None = None, **open_kwargs: Any) -> xr.Dataset:
         """
         Load a previously saved metric.
         
@@ -237,14 +162,10 @@ class Evaluator:
         """
         if run_id is None:
             # Find most recent metric file
-            metric_files = self.available_metric_files(
-                submission_name=submission_name,
-                domain=domain,
-                experiment=experiment,
-                variable=variable,
-                prediction=prediction,
-                use_orography=use_orography,
-            )
+            metric_files = self.available_metric_files(submission_name=submission_name,
+                                                       domain=domain, experiment=experiment,
+                                                       variable=variable, prediction=prediction,
+                                                       use_orography=use_orography)
             matching = [f for f in metric_files if f.startswith(f"metric_{metric_name}_")]
             if not matching:
                 raise FileNotFoundError(
@@ -253,60 +174,34 @@ class Evaluator:
             # Extract run_id from filename: metric_<name>_<runid>.nc
             run_id = matching[-1].replace(f"metric_{metric_name}_", "").replace(".nc", "")
 
-        metric_path = self._metric_path(
-            submission_name=submission_name,
-            domain=domain,
-            experiment=experiment,
-            variable=variable,
-            prediction=prediction,
-            metric_name=metric_name,
-            run_id=run_id,
-            use_orography=use_orography,
-        )
+        metric_path = self._metric_path(submission_name=submission_name, domain=domain,
+                                        experiment=experiment, variable=variable,
+                                        prediction=prediction, metric_name=metric_name,
+                                        run_id=run_id, use_orography=use_orography)
 
         if not metric_path.exists():
             raise FileNotFoundError(f"Metric file not found: {metric_path}")
 
         return xr.open_dataset(metric_path, **open_kwargs)
 
-    # -------------------------------------------------------------------------
-    # PRIVATE METHODS
-    # -------------------------------------------------------------------------
-
-    def _load_and_align_datasets(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-        variable: str,
-        prediction: str,
-        use_orography: bool | None = None,
-        **open_kwargs: Any,
-    ) -> tuple[xr.Dataset, xr.Dataset]:
+    def _load_and_align_datasets(self, submission_name: str, domain: str, experiment: str,
+                                 variable: str, prediction: str, use_orography: bool | None = None,
+                                 **open_kwargs: Any) -> tuple[xr.Dataset, xr.Dataset]:
         """Load prediction and ground truth datasets, aligned on coordinates."""
         # Load prediction
-        pred_ds = self.submission_loader.load_dataset(
-            submission_name=submission_name,
-            domain=domain,
-            experiment=experiment,
-            variable=variable,
-            prediction=prediction,
-            use_orography=use_orography,
-            **open_kwargs,
-        )
+        pred_ds = self.submission_loader.load_dataset(submission_name=submission_name,
+                                                      domain=domain, experiment=experiment,
+                                                      variable=variable, prediction=prediction,
+                                                      use_orography=use_orography, **open_kwargs)
 
         # Resolve ground truth experiment name
         gt_experiment = _normalize_experiment_for_groundtruth(experiment)
 
         # Load ground truth
-        gt_ds = self.gt_loader.load_test_target(
-            domain=domain,
-            training_experiment=gt_experiment,
-            evaluation_experiment=prediction,
-            variable=variable,
-            merge_mid_end=True,
-            **open_kwargs,
-        )
+        gt_ds = self.gt_loader.load_test_target(domain=domain, training_experiment=gt_experiment,
+                                                evaluation_experiment=prediction,
+                                                variable=variable, merge_mid_end=True,
+                                                **open_kwargs)
 
         # Align on spatial coordinates first, then time
         pred_ds, gt_ds = xr.align(pred_ds, gt_ds, join="inner", exclude=["time"])
@@ -314,15 +209,9 @@ class Evaluator:
 
         return pred_ds, gt_ds
 
-    def _compute_metric(
-        self,
-        pred_ds: xr.Dataset,
-        gt_ds: xr.Dataset,
-        variable: str,
-        metric_name: str,
-        metric_config: dict,
-        season: str | None = None,
-    ) -> xr.Dataset:
+    def _compute_metric(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset,
+                        variable: str, metric_name: str, metric_config: dict,
+                        season: str | None = None) -> xr.Dataset:
         """Compute a single metric using the appropriate diagnostic function."""
         metric_type = metric_config["type"]
 
@@ -330,123 +219,57 @@ class Evaluator:
         try:
             import evaluation.diagnostics as diagnostics
         except ImportError:
-            raise ImportError(
-                "Could not import ml-benchmark evaluation modules. "
-                "Ensure evaluation/ directory is in Python path or set ml_benchmark_path "
-                "when initializing Evaluator."
-            )
+            raise ImportError("Could not import ml-benchmark evaluation modules.")
 
         if metric_type == "rmse":
             dim = metric_config.get("dim")
-            return diagnostics.rmse(
-                x0=gt_ds,
-                x1=pred_ds,
-                var=variable,
-                season=season,
-                dim=dim,
-            )
+            return diagnostics.rmse(x0=gt_ds, x1=pred_ds,
+                                    var=variable, season=season,
+                                    dim=dim)
 
         elif metric_type == "psd":
-            psd_x0, psd_x1 = diagnostics.psd(
-                x0=gt_ds,
-                x1=pred_ds,
-                var=variable,
-                season=season,
-            )
+            psd_x0, psd_x1 = diagnostics.psd(x0=gt_ds, x1=pred_ds,
+                                             var=variable, season=season)
             return xr.Dataset({"PSD_x0": psd_x0, "PSD_x1": psd_x1})
 
         elif metric_type == "bias_index":
             index_fn = _import_function(metric_config["index_fn"])
             index_kwargs = metric_config.get("kwargs", {}).copy()
             index_kwargs["var"] = variable
-            return diagnostics.bias_index(
-                x0=gt_ds,
-                x1=pred_ds,
-                index_fn=index_fn,
-                season=season,
-                **index_kwargs,
-            )
+            return diagnostics.bias_index(x0=gt_ds, x1=pred_ds,
+                                          index_fn=index_fn, season=season,
+                                          **index_kwargs)
 
         elif metric_type == "ratio_index":
             index_fn = _import_function(metric_config["index_fn"])
             index_kwargs = metric_config.get("kwargs", {}).copy()
             index_kwargs["var"] = variable
-            return diagnostics.ratio_index(
-                x0=gt_ds,
-                x1=pred_ds,
-                index_fn=index_fn,
-                season=season,
-                **index_kwargs,
-            )
-
-        elif metric_type == "corr_bias":
-            kwargs = metric_config.get("kwargs", {})
-            var_x = kwargs.get("var_x", variable)
-            var_y = kwargs.get("var_y")
-            if var_y is None:
-                raise ValueError(
-                    f"corr_bias requires var_y in kwargs for metric '{metric_name}'"
-                )
-            return diagnostics.bias_multivariable_correlation(
-                x0=gt_ds,
-                x1=pred_ds,
-                var_x=var_x,
-                var_y=var_y,
-                season=season,
-            )
+            return diagnostics.ratio_index(x0=gt_ds, x1=pred_ds,
+                                          index_fn=index_fn, season=season,
+                                          **index_kwargs)
 
         else:
             raise ValueError(f"Unknown metric type: {metric_type}")
 
-    def _metric_dir(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-        variable: str,
-        prediction: str,
-        use_orography: bool | None = None,
-    ) -> Path:
+    def _metric_dir(self, submission_name: str, domain: str, experiment: str,
+                    variable: str, prediction: str, use_orography: bool | None = None) -> Path:
         """Build directory path for storing metrics."""
-        experiment_name = self.submission_loader._resolve_experiment_name(
-            experiment, use_orography
-        )
-        return (
-            self.config.diagnostic_path
-            / submission_name
-            / domain
-            / experiment_name
-            / variable
-            / prediction
-        )
+        experiment_name = self.submission_loader._resolve_experiment_name(experiment, use_orography)
+        return (self.config.diagnostic_path
+                / submission_name
+                / domain
+                / experiment_name
+                / variable
+                / prediction)
 
-    def _metric_path(
-        self,
-        submission_name: str,
-        domain: str,
-        experiment: str,
-        variable: str,
-        prediction: str,
-        metric_name: str,
-        run_id: str,
-        use_orography: bool | None = None,
-    ) -> Path:
+    def _metric_path(self, submission_name: str, domain: str, experiment: str, variable: str,
+                     prediction: str, metric_name: str, run_id: str,
+                     use_orography: bool | None = None) -> Path:
         """Build file path for a metric NetCDF."""
-        metric_dir = self._metric_dir(
-            submission_name=submission_name,
-            domain=domain,
-            experiment=experiment,
-            variable=variable,
-            prediction=prediction,
-            use_orography=use_orography,
-        )
+        metric_dir = self._metric_dir(submission_name=submission_name, domain=domain,
+                                      experiment=experiment, variable=variable,
+                                      prediction=prediction, use_orography=use_orography)
         return metric_dir / f"metric_{metric_name}_{run_id}.nc"
-
-
-# =============================================================================
-# UTILITY FUNCTIONS
-# =============================================================================
-
 
 def _load_metrics_registry(metrics_path: str | Path) -> dict:
     """Load metrics configuration from JSON file."""
@@ -454,7 +277,6 @@ def _load_metrics_registry(metrics_path: str | Path) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"Metrics registry not found: {path}")
     return json.loads(path.read_text())
-
 
 def _import_function(module_path: str) -> Callable:
     """
@@ -465,7 +287,6 @@ def _import_function(module_path: str) -> Callable:
     module_name, func_name = module_path.rsplit(".", 1)
     module = importlib.import_module(module_name)
     return getattr(module, func_name)
-
 
 def _normalize_experiment_for_groundtruth(experiment: str) -> str:
     """

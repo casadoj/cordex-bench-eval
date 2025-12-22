@@ -13,7 +13,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable
 
-
 @dataclass(slots=True)
 class CatalogEntry:
     """
@@ -22,15 +21,15 @@ class CatalogEntry:
     Attributes
     ----------
     name : str
-        Unique identifier for the submission (e.g., "DeepESD-v1_IFCA_m1").
+        Unique identifier for the submission.
     location : str
-        Absolute path to the staged submission directory.
+        Path to the staged submission directory.
     created_at : str
         ISO-format timestamp when the submission was registered.
     status : str
-        Current status ("staged", "evaluated", etc.).
+        Current status of the submission.
     extra : dict
-        Additional metadata from NetCDF attributes (method ID, version, etc.).
+        Additional metadata from NetCDF attributes.
     """
     name: str
     location: str
@@ -38,11 +37,9 @@ class CatalogEntry:
     status: str = "staged"
     extra: Dict[str, str] = field(default_factory=dict)
 
-
 def _now_iso() -> str:
     """Return current UTC time in ISO format."""
     return datetime.now(tz=timezone.utc).isoformat()
-
 
 class SubmissionCatalog:
     """
@@ -55,12 +52,6 @@ class SubmissionCatalog:
     ----------
     path : str | Path
         Path to the catalog JSON file (will be created if it doesn't exist).
-    
-    Example
-    -------
-    >>> catalog = SubmissionCatalog("/data/catalog.json")
-    >>> for entry in catalog.all_entries():
-    ...     print(f"{entry.name}: {entry.status}")
     """
 
     def __init__(self, path: str | Path):
@@ -74,13 +65,11 @@ class SubmissionCatalog:
             return
         raw = json.loads(self.path.read_text())
         for entry in raw.get("entries", []):
-            catalog_entry = CatalogEntry(
-                name=entry["name"],
-                location=entry["location"],
-                created_at=entry["created_at"],
-                status=entry.get("status", "staged"),
-                extra=entry.get("extra", {}),
-            )
+            catalog_entry = CatalogEntry(name=entry["name"],
+                                         location=entry["location"],
+                                         created_at=entry["created_at"],
+                                         status=entry.get("status", "staged"),
+                                         extra=entry.get("extra", {}))
             self._data[catalog_entry.name] = catalog_entry
 
     def save(self) -> None:
@@ -88,13 +77,8 @@ class SubmissionCatalog:
         payload = {"entries": [asdict(entry) for entry in self._data.values()]}
         self.path.write_text(json.dumps(payload, indent=2))
 
-    def register(
-        self,
-        name: str,
-        location: Path,
-        *,
-        extra: Dict[str, str] | None = None,
-    ) -> CatalogEntry:
+    def register(self, name: str, location: Path,
+                 *, extra: Dict[str, str] | None = None) -> CatalogEntry:
         """
         Register a new submission in the catalog.
         
@@ -112,12 +96,10 @@ class SubmissionCatalog:
         CatalogEntry
             The newly created catalog entry.
         """
-        entry = CatalogEntry(
-            name=name,
-            location=str(location),
-            created_at=_now_iso(),
-            extra=extra or {},
-        )
+        entry = CatalogEntry(name=name,
+                             location=str(location),
+                             created_at=_now_iso(),
+                             extra=extra or {})
         self._data[name] = entry
         return entry
 

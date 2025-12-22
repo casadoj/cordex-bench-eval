@@ -1,0 +1,25 @@
+{
+  "metrics_registry_path": "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/metrics.json",
+  "tables": {
+    "esd_perfect_2041_2060": {
+      "description": "ESD Experiment (with orography) - Perfect Setting (2041-2060)",
+      "experiment": "ESD_Pseudo-Reality",
+      "variable": "tasmax",
+      "prediction": "Extrapolation_perfect",
+      "use_orography": true,
+      "metrics": [
+        {
+          "name": "RMSE",
+          "key": "rmse",
+          "reduction": "mean"
+        },
+        {
+          "name": "TXX_bias",
+          "key": "txx_bias",
+          "reduction": "mean"
+        }
+      ]
+    }
+  }
+}
+

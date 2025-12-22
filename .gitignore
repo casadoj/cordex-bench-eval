@@ -13,4 +13,5 @@ dist/
 
 # Local data
 data/**/*
+tables_output/**/*
 

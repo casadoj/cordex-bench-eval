@@ -2,10 +2,6 @@
   "metrics": {
     "rmse": {
       "type": "rmse",
-      "dim": null
-    },
-    "rmse_spatial": {
-      "type": "rmse",
       "dim": ["lat", "lon"]
     },
     "mean_bias": {

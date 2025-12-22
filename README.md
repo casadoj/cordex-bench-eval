@@ -9,15 +9,16 @@ This package provides a complete workflow for:
 1. **Ingesting** submission archives (`.zip` files) from participants
 2. **Loading** prediction and ground truth datasets
 3. **Evaluating** predictions using configurable metrics (RMSE, bias indices, etc.)
+4. **Generating tables** for model comparison and analysis
 
 ```
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│   Incoming   │ ───► │   Staging    │ ───► │  Evaluation  │
-│   (.zip)     │      │   (NetCDF)   │      │  (metrics)   │
-└──────────────┘      └──────────────┘      └──────────────┘
-        │                    │                     │
-        ▼                    ▼                     ▼
-   catalog.json      SubmissionDataLoader    diagnostics/*.nc
+┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+│   Incoming   │ ───► │   Staging    │ ───► │  Evaluation  │ ───► │    Tables    │
+│   (.zip)     │      │   (NetCDF)   │      │  (metrics)   │      │  (CSV/Excel) │
+└──────────────┘      └──────────────┘      └──────────────┘      └──────────────┘
+        │                    │                     │                      │
+        ▼                    ▼                     ▼                      ▼
+   catalog.json      SubmissionDataLoader    diagnostics/*.nc    Comparison Tables
 ```
 
 ## Installation
@@ -34,6 +35,7 @@ from cordex_bench_eval import (
     SubmissionDataLoader,
     GroundTruthDataLoader,
     Evaluator,
+    TableGenerator,
 )
 from cordex_bench_eval.config import load_config_file
 
@@ -70,6 +72,20 @@ results = evaluator.evaluate(
     use_orography=True,
 )
 # Results are saved as NetCDF files and returned as a dict of xr.Dataset
+
+# Generate comparison tables
+table_gen = TableGenerator(
+    config=config,
+    catalog=catalog,
+    table_config_path="configs/tables.json",
+)
+
+df = table_gen.generate_table(
+    table_name="emul_perfect_diff_gcm",
+    submission_names=["DeepESD-v1_IFCA_m1"],
+    include_average=True,
+)
+print(df)
 ```
 
 ## Workflow Steps
@@ -91,7 +107,24 @@ print(f"Ingested {len(ingested)} submissions")
 
 This extracts archives to `staging/` and registers them in `catalog.json` with metadata from NetCDF attributes.
 
-### 2. Load Prediction Data
+### 2. Run Complete Workflow (Evaluation + Table Generation)
+
+The simplest way to use the package is to run `main.py`, which demonstrates the complete workflow:
+
+```bash
+python main.py
+```
+
+This script:
+1. Loads all submissions from the catalog
+2. Demonstrates data loading and exploration
+3. Runs evaluation with metrics computation
+4. Generates all available comparison tables
+5. Exports tables in multiple formats (CSV, Excel, HTML)
+
+For more fine-grained control, see the next sections.
+
+### 3. Load Prediction Data
 
 ```python
 from cordex_bench_eval import SubmissionCatalog, SubmissionDataLoader
@@ -116,7 +149,7 @@ ds = loader.load_dataset(
 )
 ```
 
-### 3. Load Ground Truth Data
+### 4. Load Ground Truth Data
 
 ```python
 from cordex_bench_eval import GroundTruthDataLoader
@@ -139,7 +172,7 @@ ds_test = gt_loader.load_test_target(
 )
 ```
 
-### 4. Run Evaluation
+### 5. Run Evaluation
 
 ```python
 from cordex_bench_eval import Evaluator
@@ -179,6 +212,56 @@ rmse = evaluator.load_metric(
 )
 ```
 
+### 6. Generate Comparison Tables
+
+After computing metrics for multiple models, generate comparison tables:
+
+```python
+from cordex_bench_eval import TableGenerator
+
+table_gen = TableGenerator(
+    config=config,
+    catalog=catalog,
+    table_config_path="configs/tables.json",
+)
+
+# Generate a single table
+df = table_gen.generate_table(
+    table_name="emul_perfect_diff_gcm",
+    submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2", "ML-v1"],
+    domains=["NZ_Domain", "SA_Domain", "ALPS_Domain"],
+    include_average=True,  # Include AV (average across domains)
+)
+
+print(df)
+
+# Export to various formats
+table_gen.export_table(df, "output/table.csv", format="csv")
+table_gen.export_table(df, "output/table.xlsx", format="excel")
+table_gen.export_table(df, "output/table.html", format="html")
+
+# Generate all tables at once
+all_tables = table_gen.generate_all_tables(
+    submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2"],
+)
+
+# Export all tables
+table_gen.export_all_tables(
+    output_dir="output/tables",
+    format="csv",
+    submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2"],
+)
+```
+
+**Key Features:**
+- Tables aggregate pre-computed metrics across models and domains
+- Multi-index structure: (Metric, Domain) x Models
+- Automatically computes average (AV) across domains
+- Easy to update with new models (just re-run with updated submission list)
+- Supports multiple export formats (CSV, Excel, LaTeX, HTML)
+
+For more details, see [TABLE_GENERATION.md](TABLE_GENERATION.md).
+
 ## Configuration
 
 ### `configs/config.json`
@@ -214,13 +297,65 @@ Defines available metrics and defaults per variable:
 }
 ```
 
+### `configs/tables.json`
+
+Defines table specifications for model comparison:
+
+```json
+{
+  "metrics_registry_path": "configs/metrics.json",
+  "tables": {
+    "esd_perfect_2041_2060": {
+      "description": "ESD Experiment (with orography) - Perfect Setting (2041-2060)",
+      "experiment": "ESD_Pseudo-Reality",
+      "variable": "tasmax",
+      "prediction": "Extrapolation_perfect",
+      "use_orography": true,
+      "metrics": [
+        {
+          "name": "TMean_historical (1981-2000)",
+          "key": "rmse",
+          "reduction": "mean"
+        },
+        {
+          "name": "TXX_historical (1981-2000)",
+          "key": "txx_bias",
+          "reduction": "mean"
+        }
+      ]
+    },
+    "emul_perfect_diff_gcm": {
+      "description": "Emul_hist_future - Perfect Evaluation, Different GCM (2041-2060)",
+      "experiment": "Emulator_Hist_Future",
+      "variable": "pr",
+      "prediction": "Extrapolation_perfect",
+      "use_orography": true,
+      "metrics": [
+        {
+          "name": "Pr_Mean_historical (1981-2000)",
+          "key": "rmse",
+          "reduction": "mean"
+        }
+      ]
+    }
+  }
+}
+```
+
+Each table specification defines:
+- **experiment**: Which experiment to evaluate
+- **variable**: Which variable (pr, tasmax, etc.)
+- **prediction**: Which prediction scenario (e.g., Extrapolation_perfect)
+- **metrics**: List of metrics to include with their display names and reduction methods
+
 ## Directory Structure
 
 ```
 cordex-bench-eval/
 ├── configs/
 │   ├── config.json          # Paths configuration
-│   └── metrics.json         # Metrics definitions
+│   ├── metrics.json         # Metrics definitions
+│   └── tables.json          # Table specifications
 ├── catalog/
 │   └── catalog.json         # Registry of ingested submissions
 ├── data/
@@ -233,6 +368,7 @@ cordex-bench-eval/
 │   ├── catalog.py           # Submission catalog
 │   ├── submission_handler.py # Archive ingestion
 │   ├── data_loader.py       # Data loading utilities
-│   └── evaluator.py         # Metrics computation
-└── main.py                  # Example usage
+│   ├── evaluator.py         # Metrics computation
+│   └── table_generator.py   # Table generation
+└── main.py                  # Complete workflow (evaluation + table generation)
 ```
