@@ -56,11 +56,11 @@ for entry in catalog.all_entries():
 
 # Select which submission/experiment to evaluate
 SUBMISSION_NAME = "DeepESD-v1_IFCA_m1"
-EXPERIMENT = "ESD_Pseudo-Reality"
+TRAINING_EXPERIMENT = "ESD_pseudo_reality"
+EVALUATION_EXPERIMENT = "Perfect_cross_validation"
 USE_OROGRAPHY = True
-DOMAIN = "NZ_Domain"
-VARIABLE = "tasmax"
-PREDICTION = "Extrapolation_perfect"
+DOMAIN = "SA_Domain"
+VARIABLE = "pr"
 
 # Create data loader
 loader = SubmissionDataLoader(catalog)
@@ -70,13 +70,16 @@ print(f"\n=== Available Data for {SUBMISSION_NAME} ===")
 print(f"Domains: {loader.available_domains(SUBMISSION_NAME)}")
 print(f"Experiments in {DOMAIN}: {loader.available_experiments(SUBMISSION_NAME, DOMAIN)}")
 
-experiment_name = f"{EXPERIMENT}_{'OROG' if USE_OROGRAPHY else 'NO_OROG'}"
-print(f"Variables in {experiment_name}: {loader.available_variables(SUBMISSION_NAME, DOMAIN, experiment_name)}")
-print(f"Predictions for {VARIABLE}: {loader.available_predictions(SUBMISSION_NAME, DOMAIN, experiment_name, VARIABLE)}")
+experiment_name = f"{TRAINING_EXPERIMENT}_{'OROG' if USE_OROGRAPHY else 'NO_OROG'}"
+print(f"Periods in {experiment_name}: {loader.available_periods(SUBMISSION_NAME, DOMAIN, experiment_name)}")
 
 # Load the prediction dataset
-prediction_ds = loader.load_dataset(submission_name=SUBMISSION_NAME, domain=DOMAIN, experiment=EXPERIMENT,
-                                    use_orography=USE_OROGRAPHY, variable=VARIABLE, prediction=PREDICTION)
+prediction_ds = loader.load_dataset(submission_name=SUBMISSION_NAME,
+                                    domain=DOMAIN,
+                                    training_experiment=TRAINING_EXPERIMENT,
+                                    evaluation_experiment=EVALUATION_EXPERIMENT,
+                                    variable=VARIABLE,
+                                    use_orography=USE_OROGRAPHY)
 print(f"Prediction Dataset: {prediction_ds}")
 ########################################################################################
 
@@ -89,12 +92,16 @@ print("Available Ground Truth Domains:")
 print(f"Domains: {gt_loader.available_domains()}")
 
 # Load training target
-gt_train = gt_loader.load_train_target(domain="ALPS", training_experiment="Emulator_hist_future", variable=VARIABLE)
+gt_train = gt_loader.load_train_target(domain=DOMAIN,
+                                       training_experiment=TRAINING_EXPERIMENT,
+                                       variable=VARIABLE)
 print(f"Ground Truth (Train): {gt_train}")
 
 # Load test target
-gt_test = gt_loader.load_test_target(domain="ALPS", training_experiment="Emulator_hist_future",
-                                     evaluation_experiment=PREDICTION, variable=VARIABLE)
+gt_test = gt_loader.load_test_target(domain=DOMAIN,
+                                     training_experiment=TRAINING_EXPERIMENT,
+                                     evaluation_experiment=EVALUATION_EXPERIMENT,
+                                     variable=VARIABLE)
 print(f"Ground Truth (Test): {gt_test}")
 ########################################################################################
 
@@ -106,21 +113,33 @@ evaluator = Evaluator(config=config, catalog=catalog, metrics_registry_path=METR
 
 # Compute default metrics for the variable (defined in metrics.json)
 print("Running Evaluation:")
-results = evaluator.evaluate(submission_name=SUBMISSION_NAME, domain=DOMAIN, experiment=EXPERIMENT, variable=VARIABLE,
-                             prediction=PREDICTION, use_orography=USE_OROGRAPHY)
+results = evaluator.evaluate(submission_name=SUBMISSION_NAME,
+                             domain=DOMAIN,
+                             training_experiment=TRAINING_EXPERIMENT,
+                             evaluation_experiment=EVALUATION_EXPERIMENT,
+                             variable=VARIABLE,
+                             use_orography=USE_OROGRAPHY)
 
 print(f"Computed metrics: {list(results.keys())}")
 
 # List saved metric files
 metric_files = evaluator.available_metric_files(submission_name=SUBMISSION_NAME,
-                                                domain=DOMAIN, experiment=EXPERIMENT, variable=VARIABLE,
-                                                prediction=PREDICTION, use_orography=USE_OROGRAPHY)
+                                                domain=DOMAIN,
+                                                training_experiment=TRAINING_EXPERIMENT,
+                                                evaluation_experiment=EVALUATION_EXPERIMENT,
+                                                variable=VARIABLE,
+                                                use_orography=USE_OROGRAPHY)
 print(f"Saved metric files: {metric_files}")
 
 # Load a specific metric
-rmse_ds = evaluator.load_metric(submission_name=SUBMISSION_NAME, domain=DOMAIN, experiment=EXPERIMENT, variable=VARIABLE,
-                                prediction=PREDICTION, metric_name="rmse", use_orography=USE_OROGRAPHY)
-print(f"RMSE Result: {rmse_ds}")
+sdii_ratio_ds = evaluator.load_metric(submission_name=SUBMISSION_NAME,
+                                      domain=DOMAIN,
+                                      training_experiment=TRAINING_EXPERIMENT,
+                                      evaluation_experiment=EVALUATION_EXPERIMENT,
+                                      variable=VARIABLE,
+                                      metric_name="sdii_ratio",
+                                      use_orography=USE_OROGRAPHY)
+print(f"sdii_ratio Result: {sdii_ratio_ds}")
 ########################################################################################
 
 ########################################################################################
@@ -140,7 +159,7 @@ print(f"\nAvailable submissions for tables: {all_submissions}")
 # 7a. GENERATE A SINGLE TABLE
 
 print("\n--- Generating Single Table ---")
-table_name = "esd_perfect_2041_2060"
+table_name = "esd_perfect_extrapolation"
 
 df_single = table_gen.generate_table(table_name=table_name,
                                      submission_names=all_submissions,

@@ -2,7 +2,7 @@
   "metrics": {
     "rmse": {
       "type": "rmse",
-      "dim": ["lat", "lon"]
+      "dim": ["time"]
     },
     "mean_bias": {
       "type": "bias_index",
@@ -45,7 +45,7 @@
       "type": "bias_index",
       "index_fn": "evaluation.indices.su",
       "kwargs": {
-        "threshold": 25.0
+        "threshold": 300.0
       }
     },
     "psd": {
@@ -62,7 +62,7 @@
   },
   "defaults": {
     "pr": ["rmse", "cdd_bias", "sdii_ratio", "rx1day_bias"],
-    "tasmax": ["rmse", "txx_bias", "su_bias"]
+    "tasmax": ["rmse", "mean_bias", "txx_bias", "su_bias"]
   }
 }
 

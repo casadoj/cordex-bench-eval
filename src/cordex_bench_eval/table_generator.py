@@ -85,9 +85,9 @@ class TableGenerator:
             domains = ["NZ_Domain", "SA_Domain", "ALPS_Domain"]
         
         # Extract table parameters
-        experiment = table_spec["experiment"]
+        training_experiment = table_spec["training_experiment"]
+        evaluation_experiment = table_spec["evaluation_experiment"]
         variable = table_spec["variable"]
-        prediction = table_spec["prediction"]
         use_orography = table_spec.get("use_orography")
         metrics_list = table_spec["metrics"]
         
@@ -107,10 +107,13 @@ class TableGenerator:
                 for submission_name in submission_names:
                     try:
                         value = self._load_metric_value(submission_name=submission_name,
-                                                       domain=domain, experiment=experiment,
-                                                       variable=variable, prediction=prediction,
-                                                       metric_key=metric_key, reduction_fn=reduction_fn,
-                                                       use_orography=use_orography)
+                                                        domain=domain,
+                                                        training_experiment=training_experiment,
+                                                        evaluation_experiment=evaluation_experiment,
+                                                        variable=variable,
+                                                        metric_key=metric_key,
+                                                        reduction_fn=reduction_fn,
+                                                        use_orography=use_orography)
                         row_data[submission_name] = value
                     except FileNotFoundError:
                         row_data[submission_name] = np.nan
@@ -126,10 +129,14 @@ class TableGenerator:
                     for domain in domains:
                         try:
                             value = self._load_metric_value(submission_name=submission_name,
-                                                            domain=domain, experiment=experiment,
-                                                            variable=variable, prediction=prediction,
-                                                            metric_key=metric_key, reduction_fn=reduction_fn,
+                                                            domain=domain,
+                                                            training_experiment=training_experiment,
+                                                            evaluation_experiment=evaluation_experiment,
+                                                            variable=variable,
+                                                            metric_key=metric_key,
+                                                            reduction_fn=reduction_fn,
                                                             use_orography=use_orography)
+
                             if not np.isnan(value):
                                 domain_values.append(value)
                         except FileNotFoundError:
@@ -158,11 +165,9 @@ class TableGenerator:
         """
         tables = {}
         for table_name in self.table_config.get("tables", {}).keys():
-            tables[table_name] = self.generate_table(
-                table_name=table_name,
-                submission_names=submission_names,
-                domains=domains,
-            )
+            tables[table_name] = self.generate_table(table_name=table_name,
+                                                     submission_names=submission_names,
+                                                     domains=domains)
         return tables
 
     def export_table(self, df: pd.DataFrame, output_path: str | Path, format: str = "csv",
@@ -228,8 +233,9 @@ class TableGenerator:
             raise FileNotFoundError(f"Table config not found: {path}")
         return json.loads(path.read_text())
 
-    def _load_metric_value(self, submission_name: str, domain: str, experiment: str,
-                           variable: str, prediction: str, metric_key: str,
+    def _load_metric_value(self, submission_name: str, domain: str,
+                           training_experiment: str, evaluation_experiment: str,
+                           variable: str, metric_key: str,
                            reduction_fn: str = "mean", use_orography: bool | None = None) -> float:
         """
         Load a metric value from diagnostic file and apply reduction.
@@ -239,7 +245,7 @@ class TableGenerator:
         metric_key : str
             Metric identifier (e.g., "rmse", "cdd_bias").
         reduction_fn : str
-            How to reduce the metric to scalar: "mean", "median", "max", "min".
+            How to reduce the metric to scalar: "mean", "median", "max", "min", "abs_mean", "std".
         
         Returns
         -------
@@ -248,9 +254,12 @@ class TableGenerator:
         """
         # Load the metric dataset
         ds = self.evaluator.load_metric(submission_name=submission_name,
-                                        domain=domain, experiment=experiment,
-                                        variable=variable, prediction=prediction,
-                                        metric_name=metric_key, use_orography=use_orography)
+                                        domain=domain,
+                                        training_experiment=training_experiment,
+                                        evaluation_experiment=evaluation_experiment,
+                                        variable=variable,
+                                        metric_name=metric_key,
+                                        use_orography=use_orography)
         
         # Extract the primary variable
         # Most metrics have a single data variable
@@ -273,6 +282,8 @@ class TableGenerator:
             return float(data_array.min().values)
         elif reduction_fn == "std":
             return float(data_array.std().values)
+        elif reduction_fn == "abs_mean":
+            return float(np.abs(data_array).mean().values)
         else:
             raise ValueError(f"Unknown reduction function: {reduction_fn}")
 

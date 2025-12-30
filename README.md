@@ -27,6 +27,72 @@ This package provides a complete workflow for:
 pip install -e .
 ```
 
+## Submission Structure
+
+Submissions should be organized following this structure:
+
+```
+<submission_name>/
+├── ALPS_Domain/
+│   ├── Emulator_hist_future_OROG/
+│   │   ├── historical/
+│   │   │   ├── perfect/
+│   │   │   │   ├── Predictions_pr_tasmax_CNRM-CM5_1981-2000.nc
+│   │   │   │   └── Predictions_pr_tasmax_MPI-ESM-LR_1981-2000.nc
+│   │   │   └── imperfect/
+│   │   │       └── ...
+│   │   ├── mid_century/
+│   │   │   ├── perfect/
+│   │   │   └── imperfect/
+│   │   └── end_century/
+│   │       ├── perfect/
+│   │       └── imperfect/
+│   ├── Emulator_hist_future_NO_OROG/
+│   │   └── ...
+│   ├── ESD_pseudo_reality_OROG/
+│   │   └── ...
+│   └── ESD_pseudo_reality_NO_OROG/
+│       └── ...
+├── NZ_Domain/
+│   └── ...
+└── SA_Domain/
+    └── ...
+```
+
+Key points:
+- **Domains**: `ALPS_Domain`, `NZ_Domain`, `SA_Domain`
+- **Training Experiments**: `Emulator_hist_future`, `ESD_pseudo_reality` (with `_OROG` or `_NO_OROG` suffix)
+- **Periods**: `historical`, `mid_century`, `end_century`
+- **Conditions**: `perfect` (same GCM as training), `imperfect` (different GCM)
+- **Files**: Named as `Predictions_pr_tasmax_<GCM>_<date_range>.nc` (contains both `pr` and `tasmax` variables)
+
+## Evaluation Experiments
+
+Based on the training experiment chosen, the following evaluation experiments are available:
+
+### ESD_pseudo_reality
+
+| Evaluation Experiment | Period | Condition | GCM |
+|----------------------|--------|-----------|-----|
+| `Perfect_cross_validation` | historical | perfect | Same as train |
+| `Imperfect_cross_validation` | historical | imperfect | Same as train |
+| `Perfect_extrapolation` | mid_end_century | perfect | Same as train |
+| `Imperfect_extrapolation` | mid_end_century | imperfect | Same as train |
+| `Perfect_extrapolation_HT` | mid_end_century | perfect | Different GCM |
+
+### Emulator_hist_future
+
+| Evaluation Experiment | Period | Condition | GCM |
+|----------------------|--------|-----------|-----|
+| `Perfect_cross_validation` | historical | perfect | Same as train |
+| `Imperfect_cross_validation` | historical | imperfect | Same as train |
+| `Perfect_cross_validation_HT` | historical | perfect | Different GCM |
+| `Imperfect_cross_validation_HT` | historical | imperfect | Different GCM |
+| `Perfect_interpolation` | mid_end_century | perfect | Same as train |
+| `Imperfect_interpolation` | mid_end_century | imperfect | Same as train |
+| `Perfect_interpolation_HT` | mid_end_century | perfect | Different GCM |
+| `Imperfect_interpolation_HT` | mid_end_century | imperfect | Different GCM |
+
 ## Quick Start
 
 ```python
@@ -46,46 +112,35 @@ config = load_config_file("configs/config.json")
 catalog = SubmissionCatalog(config.catalog_path)
 loader = SubmissionDataLoader(catalog)
 
-ds = loader.load_dataset(
-    submission_name="DeepESD-v1_IFCA_m1",
-    domain="ALPS_Domain",
-    experiment="Emulator_Hist_Future",
-    use_orography=True,
-    variable="pr",
-    prediction="Extrapolation_perfect",
-)
+ds = loader.load_dataset(submission_name="DeepESD-v1_IFCA_m1",
+                         domain="ALPS_Domain",
+                         training_experiment="Emulator_hist_future",
+                         evaluation_experiment="Perfect_cross_validation",
+                         use_orography=True,
+                         variable="pr")
 
 # Run evaluation
-evaluator = Evaluator(
-    config=config,
-    catalog=catalog,
-    metrics_registry_path="configs/metrics.json",
-    ml_benchmark_path=config.mlbenchmark_path,
-)
+evaluator = Evaluator(config=config,
+                      catalog=catalog,
+                      metrics_registry_path="configs/metrics.json",
+                      ml_benchmark_path=config.mlbenchmark_path)
 
-results = evaluator.evaluate(
-    submission_name="DeepESD-v1_IFCA_m1",
-    domain="ALPS_Domain",
-    experiment="Emulator_Hist_Future",
-    variable="pr",
-    prediction="Extrapolation_perfect",
-    use_orography=True,
-)
+results = evaluator.evaluate(submission_name="DeepESD-v1_IFCA_m1",
+                             domain="ALPS_Domain",
+                             training_experiment="Emulator_hist_future",
+                             evaluation_experiment="Perfect_cross_validation",
+                             variable="pr",
+                             use_orography=True,)
 # Results are saved as NetCDF files and returned as a dict of xr.Dataset
 
 # Generate comparison tables
-table_gen = TableGenerator(
-    config=config,
-    catalog=catalog,
-    table_config_path="configs/tables.json",
-)
+table_gen = TableGenerator(config=config,
+                           catalog=catalog,
+                           table_config_path="configs/tables.json")
 
-df = table_gen.generate_table(
-    table_name="emul_perfect_diff_gcm",
-    submission_names=["DeepESD-v1_IFCA_m1"],
-    include_average=True,
-)
-print(df)
+df = table_gen.generate_table(table_name="esd_perfect_extrapolation",
+                              submission_names=["DeepESD-v1_IFCA_m1"],
+                              include_average=True)
 ```
 
 ## Workflow Steps
@@ -135,19 +190,23 @@ loader = SubmissionDataLoader(catalog)
 # Explore what's available
 print(loader.available_domains("DeepESD-v1_IFCA_m1"))
 print(loader.available_experiments("DeepESD-v1_IFCA_m1", "ALPS_Domain"))
-print(loader.available_variables("DeepESD-v1_IFCA_m1", "ALPS_Domain", "Emulator_Hist_Future_OROG"))
-print(loader.available_predictions("DeepESD-v1_IFCA_m1", "ALPS_Domain", "Emulator_Hist_Future_OROG", "pr"))
+print(loader.available_periods("DeepESD-v1_IFCA_m1", "ALPS_Domain", "Emulator_hist_future_OROG"))
+print(loader.available_conditions("DeepESD-v1_IFCA_m1", "ALPS_Domain", 
+                                   "Emulator_hist_future_OROG", "historical"))
 
-# Load a dataset
-ds = loader.load_dataset(
-    submission_name="DeepESD-v1_IFCA_m1",
-    domain="ALPS_Domain",
-    experiment="Emulator_Hist_Future",
-    use_orography=True,      # Appends _OROG to experiment name
-    variable="pr",
-    prediction="Extrapolation_perfect",
-)
+# Load a dataset using training + evaluation experiment
+ds = loader.load_dataset(submission_name="DeepESD-v1_IFCA_m1",
+                         domain="ALPS_Domain",
+                         training_experiment="Emulator_hist_future",
+                         evaluation_experiment="Perfect_cross_validation",
+                         use_orography=True, # Appends _OROG to experiment name
+                         variable="pr")
 ```
+
+The loader automatically:
+- Maps the evaluation experiment to the correct period/condition/GCM combination
+- Handles `mid_end_century` periods by merging mid and end century files
+- Supports case-insensitive experiment name matching
 
 ### 4. Load Ground Truth Data
 
@@ -157,19 +216,15 @@ from cordex_bench_eval import GroundTruthDataLoader
 gt_loader = GroundTruthDataLoader("data/target")
 
 # Training data
-ds_train = gt_loader.load_train_target(
-    domain="ALPS",
-    training_experiment="Emulator_hist_future",
-    variable="pr",
-)
+ds_train = gt_loader.load_train_target(domain="ALPS",
+                                       training_experiment="Emulator_hist_future",
+                                       variable="pr")
 
 # Test data (for evaluation)
-ds_test = gt_loader.load_test_target(
-    domain="ALPS",
-    training_experiment="Emulator_hist_future",
-    evaluation_experiment="Extrapolation_perfect",
-    variable="pr",
-)
+ds_test = gt_loader.load_test_target(domain="ALPS",
+                                     training_experiment="Emulator_hist_future",
+                                     evaluation_experiment="Perfect_cross_validation",
+                                     variable="pr")
 ```
 
 ### 5. Run Evaluation
@@ -177,39 +232,30 @@ ds_test = gt_loader.load_test_target(
 ```python
 from cordex_bench_eval import Evaluator
 
-evaluator = Evaluator(
-    config=config,
-    catalog=catalog,
-    metrics_registry_path="configs/metrics.json",
-    ml_benchmark_path="/path/to/ml-benchmark",
-)
+evaluator = Evaluator(config=config,
+                      catalog=catalog,
+                      metrics_registry_path="configs/metrics.json",
+                      ml_benchmark_path="/path/to/ml-benchmark")
 
 # Compute metrics (uses defaults from metrics.json)
-results = evaluator.evaluate(
-    submission_name="DeepESD-v1_IFCA_m1",
-    domain="ALPS_Domain",
-    experiment="Emulator_Hist_Future",
-    variable="pr",
-    prediction="Extrapolation_perfect",
-    use_orography=True,
-)
+results = evaluator.evaluate(submission_name="DeepESD-v1_IFCA_m1",
+                             domain="ALPS_Domain",
+                             training_experiment="Emulator_hist_future",
+                             evaluation_experiment="Perfect_cross_validation",
+                             variable="pr",
+                             use_orography=True)
 
 # Or specify which metrics to compute
-results = evaluator.evaluate(
-    ...,
-    metrics=["rmse", "cdd_bias", "rx1day_bias"],
-)
+results = evaluator.evaluate(..., metrics=["rmse", "cdd_bias", "rx1day_bias"])
 
 # Load a previously computed metric
-rmse = evaluator.load_metric(
-    submission_name="DeepESD-v1_IFCA_m1",
-    domain="ALPS_Domain",
-    experiment="Emulator_Hist_Future",
-    variable="pr",
-    prediction="Extrapolation_perfect",
-    metric_name="rmse",
-    use_orography=True,
-)
+rmse = evaluator.load_metric(submission_name="DeepESD-v1_IFCA_m1",
+                             domain="ALPS_Domain",
+                             training_experiment="Emulator_hist_future",
+                             evaluation_experiment="Perfect_cross_validation",
+                             variable="pr",
+                             metric_name="rmse",
+                             use_orography=True)
 ```
 
 ### 6. Generate Comparison Tables
@@ -219,38 +265,27 @@ After computing metrics for multiple models, generate comparison tables:
 ```python
 from cordex_bench_eval import TableGenerator
 
-table_gen = TableGenerator(
-    config=config,
-    catalog=catalog,
-    table_config_path="configs/tables.json",
-)
+table_gen = TableGenerator(config=config,
+                           catalog=catalog,
+                           table_config_path="configs/tables.json")
 
 # Generate a single table
-df = table_gen.generate_table(
-    table_name="emul_perfect_diff_gcm",
-    submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2", "ML-v1"],
-    domains=["NZ_Domain", "SA_Domain", "ALPS_Domain"],
-    include_average=True,  # Include AV (average across domains)
-)
-
-print(df)
+df = table_gen.generate_table(table_name="esd_perfect_extrapolation",
+                              submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2", "ML-v1"],
+                              domains=["NZ_Domain", "SA_Domain", "ALPS_Domain"],
+                              include_average=True)
 
 # Export to various formats
 table_gen.export_table(df, "output/table.csv", format="csv")
-table_gen.export_table(df, "output/table.xlsx", format="excel")
 table_gen.export_table(df, "output/table.html", format="html")
 
 # Generate all tables at once
-all_tables = table_gen.generate_all_tables(
-    submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2"],
-)
+all_tables = table_gen.generate_all_tables(submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2"])
 
 # Export all tables
-table_gen.export_all_tables(
-    output_dir="output/tables",
-    format="csv",
-    submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2"],
-)
+table_gen.export_all_tables(output_dir="output/tables",
+                            format="csv",
+                            submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2"])
 ```
 
 **Key Features:**
@@ -258,9 +293,7 @@ table_gen.export_all_tables(
 - Multi-index structure: (Metric, Domain) x Models
 - Automatically computes average (AV) across domains
 - Easy to update with new models (just re-run with updated submission list)
-- Supports multiple export formats (CSV, Excel, LaTeX, HTML)
-
-For more details, see [TABLE_GENERATION.md](TABLE_GENERATION.md).
+- Supports multiple export formats (CSV, LaTeX, HTML)
 
 ## Configuration
 
@@ -305,35 +338,21 @@ Defines table specifications for model comparison:
 {
   "metrics_registry_path": "configs/metrics.json",
   "tables": {
-    "esd_perfect_2041_2060": {
-      "description": "ESD Experiment (with orography) - Perfect Setting (2041-2060)",
-      "experiment": "ESD_Pseudo-Reality",
+    "esd_perfect_extrapolation": {
+      "description": "ESD Experiment (with orography) - Perfect Extrapolation",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_extrapolation",
       "variable": "tasmax",
-      "prediction": "Extrapolation_perfect",
       "use_orography": true,
       "metrics": [
         {
-          "name": "TMean_historical (1981-2000)",
+          "name": "RMSE",
           "key": "rmse",
           "reduction": "mean"
         },
         {
-          "name": "TXX_historical (1981-2000)",
+          "name": "TXX_bias",
           "key": "txx_bias",
-          "reduction": "mean"
-        }
-      ]
-    },
-    "emul_perfect_diff_gcm": {
-      "description": "Emul_hist_future - Perfect Evaluation, Different GCM (2041-2060)",
-      "experiment": "Emulator_Hist_Future",
-      "variable": "pr",
-      "prediction": "Extrapolation_perfect",
-      "use_orography": true,
-      "metrics": [
-        {
-          "name": "Pr_Mean_historical (1981-2000)",
-          "key": "rmse",
           "reduction": "mean"
         }
       ]
@@ -343,9 +362,9 @@ Defines table specifications for model comparison:
 ```
 
 Each table specification defines:
-- **experiment**: Which experiment to evaluate
+- **training_experiment**: Which training experiment was used
+- **evaluation_experiment**: Which evaluation scenario (e.g., Perfect_cross_validation)
 - **variable**: Which variable (pr, tasmax, etc.)
-- **prediction**: Which prediction scenario (e.g., Extrapolation_perfect)
 - **metrics**: List of metrics to include with their display names and reduction methods
 
 ## Directory Structure

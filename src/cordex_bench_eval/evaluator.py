@@ -54,9 +54,10 @@ class Evaluator:
             import sys
             sys.path.insert(0, str(Path(ml_benchmark_path).expanduser().resolve()))
 
-    def evaluate(self, submission_name: str, domain: str, experiment: str, variable: str,
-                 prediction: str, metrics: List[str] | None = None, use_orography: bool | None = None,
-                 season: str | None = None, run_id: str | None = None, **open_kwargs: Any) -> dict[str, xr.Dataset]:
+    def evaluate(self, submission_name: str, domain: str, training_experiment: str,
+                 evaluation_experiment: str, variable: str, metrics: List[str] | None = None,
+                 use_orography: bool | None = None, season: str | None = None,
+                 run_id: str | None = None, **open_kwargs: Any) -> dict[str, xr.Dataset]:
         """
         Compute metrics for a prediction and save results.
         
@@ -66,12 +67,12 @@ class Evaluator:
             Name of the submission (catalog entry).
         domain : str
             Domain name (e.g., "ALPS_Domain").
-        experiment : str
-            Experiment name (e.g., "Emulator_Hist_Future").
+        training_experiment : str
+            Training experiment (e.g., "Emulator_hist_future", "ESD_pseudo_reality").
+        evaluation_experiment : str
+            Evaluation experiment (e.g., "Perfect_cross_validation").
         variable : str
             Variable name (e.g., "pr", "tasmax").
-        prediction : str
-            Prediction name (e.g., "Extrapolation_perfect").
         metrics : list of str, optional
             Metric names to compute. If None, uses defaults from registry.
         use_orography : bool, optional
@@ -96,9 +97,12 @@ class Evaluator:
 
         # Load and align datasets
         pred_ds, gt_ds = self._load_and_align_datasets(submission_name=submission_name,
-                                                       domain=domain, experiment=experiment,
-                                                       variable=variable, prediction=prediction,
-                                                       use_orography=use_orography, **open_kwargs)
+                                                       domain=domain,
+                                                       training_experiment=training_experiment,
+                                                       evaluation_experiment=evaluation_experiment,
+                                                       variable=variable,
+                                                       use_orography=use_orography,
+                                                       **open_kwargs)
 
         # Compute each metric
         results = {}
@@ -113,9 +117,13 @@ class Evaluator:
 
             # Save metric to NetCDF
             metric_path = self._metric_path(submission_name=submission_name,
-                                            domain=domain, experiment=experiment, variable=variable,
-                                            prediction=prediction, metric_name=metric_name,
-                                            run_id=run_id, use_orography=use_orography)
+                                            domain=domain,
+                                            training_experiment=training_experiment,
+                                            evaluation_experiment=evaluation_experiment,
+                                            variable=variable,
+                                            metric_name=metric_name,
+                                            run_id=run_id,
+                                            use_orography=use_orography)
             metric_path.parent.mkdir(parents=True, exist_ok=True)
             metric_ds.to_netcdf(metric_path)
 
@@ -123,8 +131,9 @@ class Evaluator:
 
         return results
 
-    def available_metric_files(self, submission_name: str, domain: str, experiment: str, variable: str,
-                               prediction: str, use_orography: bool | None = None) -> List[str]:
+    def available_metric_files(self, submission_name: str, domain: str, training_experiment: str,
+                               evaluation_experiment: str, variable: str,
+                               use_orography: bool | None = None) -> List[str]:
         """
         List saved metric files for a prediction.
         
@@ -133,18 +142,22 @@ class Evaluator:
         list of str
             Metric filenames (without path).
         """
-        metric_dir = self._metric_dir(submission_name=submission_name, domain=domain,
-                                      experiment=experiment, variable=variable,
-                                      prediction=prediction, use_orography=use_orography)
+        metric_dir = self._metric_dir(submission_name=submission_name,
+                                      domain=domain,
+                                      training_experiment=training_experiment,
+                                      evaluation_experiment=evaluation_experiment,
+                                      variable=variable,
+                                      use_orography=use_orography) 
 
         if not metric_dir.exists():
             return []
 
         return sorted([f.name for f in metric_dir.glob("metric_*.nc")])
 
-    def load_metric(self, submission_name: str, domain: str, experiment: str, variable: str,
-                    prediction: str, metric_name: str, run_id: str | None = None,
-                    use_orography: bool | None = None, **open_kwargs: Any) -> xr.Dataset:
+    def load_metric(self, submission_name: str, domain: str, training_experiment: str,
+                    evaluation_experiment: str, variable: str, metric_name: str,
+                    run_id: str | None = None, use_orography: bool | None = None,
+                    **open_kwargs: Any) -> xr.Dataset:
         """
         Load a previously saved metric.
         
@@ -163,44 +176,53 @@ class Evaluator:
         if run_id is None:
             # Find most recent metric file
             metric_files = self.available_metric_files(submission_name=submission_name,
-                                                       domain=domain, experiment=experiment,
-                                                       variable=variable, prediction=prediction,
+                                                       domain=domain,
+                                                       training_experiment=training_experiment,
+                                                       evaluation_experiment=evaluation_experiment,
+                                                       variable=variable,
                                                        use_orography=use_orography)
+
             matching = [f for f in metric_files if f.startswith(f"metric_{metric_name}_")]
             if not matching:
-                raise FileNotFoundError(
-                    f"No metric file found for '{metric_name}' in prediction '{prediction}'."
-                )
+                raise FileNotFoundError(f"No metric file found for '{metric_name}' in evaluation '{evaluation_experiment}'.")
+
             # Extract run_id from filename: metric_<name>_<runid>.nc
             run_id = matching[-1].replace(f"metric_{metric_name}_", "").replace(".nc", "")
 
-        metric_path = self._metric_path(submission_name=submission_name, domain=domain,
-                                        experiment=experiment, variable=variable,
-                                        prediction=prediction, metric_name=metric_name,
-                                        run_id=run_id, use_orography=use_orography)
+        metric_path = self._metric_path(submission_name=submission_name,
+                                        domain=domain,
+                                        training_experiment=training_experiment,
+                                        evaluation_experiment=evaluation_experiment,
+                                        variable=variable,
+                                        metric_name=metric_name,
+                                        run_id=run_id,
+                                        use_orography=use_orography)
 
         if not metric_path.exists():
             raise FileNotFoundError(f"Metric file not found: {metric_path}")
 
         return xr.open_dataset(metric_path, **open_kwargs)
 
-    def _load_and_align_datasets(self, submission_name: str, domain: str, experiment: str,
-                                 variable: str, prediction: str, use_orography: bool | None = None,
+    def _load_and_align_datasets(self, submission_name: str, domain: str,
+                                 training_experiment: str, evaluation_experiment: str,
+                                 variable: str, use_orography: bool | None = None,
                                  **open_kwargs: Any) -> tuple[xr.Dataset, xr.Dataset]:
         """Load prediction and ground truth datasets, aligned on coordinates."""
         # Load prediction
         pred_ds = self.submission_loader.load_dataset(submission_name=submission_name,
-                                                      domain=domain, experiment=experiment,
-                                                      variable=variable, prediction=prediction,
-                                                      use_orography=use_orography, **open_kwargs)
-
-        # Resolve ground truth experiment name
-        gt_experiment = _normalize_experiment_for_groundtruth(experiment)
+                                                      domain=domain,
+                                                      training_experiment=training_experiment,
+                                                      evaluation_experiment=evaluation_experiment,
+                                                      variable=variable,
+                                                      use_orography=use_orography,
+                                                      **open_kwargs)
 
         # Load ground truth
-        gt_ds = self.gt_loader.load_test_target(domain=domain, training_experiment=gt_experiment,
-                                                evaluation_experiment=prediction,
-                                                variable=variable, merge_mid_end=True,
+        gt_ds = self.gt_loader.load_test_target(domain=domain,
+                                                training_experiment=training_experiment,
+                                                evaluation_experiment=evaluation_experiment,
+                                                variable=variable,
+                                                merge_mid_end=True,
                                                 **open_kwargs)
 
         # Align on spatial coordinates first, then time
@@ -251,25 +273,31 @@ class Evaluator:
         else:
             raise ValueError(f"Unknown metric type: {metric_type}")
 
-    def _metric_dir(self, submission_name: str, domain: str, experiment: str,
-                    variable: str, prediction: str, use_orography: bool | None = None) -> Path:
+    def _metric_dir(self, submission_name: str, domain: str, training_experiment: str,
+                    evaluation_experiment: str, variable: str,
+                    use_orography: bool | None = None) -> Path:
         """Build directory path for storing metrics."""
-        experiment_name = self.submission_loader._resolve_experiment_name(experiment, use_orography)
+        experiment_name = self.submission_loader._resolve_experiment_name(training_experiment, use_orography)
         return (self.config.diagnostic_path
                 / submission_name
                 / domain
                 / experiment_name
                 / variable
-                / prediction)
+                / evaluation_experiment)
 
-    def _metric_path(self, submission_name: str, domain: str, experiment: str, variable: str,
-                     prediction: str, metric_name: str, run_id: str,
+    def _metric_path(self, submission_name: str, domain: str, training_experiment: str,
+                     evaluation_experiment: str, variable: str, metric_name: str, run_id: str,
                      use_orography: bool | None = None) -> Path:
         """Build file path for a metric NetCDF."""
-        metric_dir = self._metric_dir(submission_name=submission_name, domain=domain,
-                                      experiment=experiment, variable=variable,
-                                      prediction=prediction, use_orography=use_orography)
+        metric_dir = self._metric_dir(submission_name=submission_name,
+                                      domain=domain,
+                                      training_experiment=training_experiment,
+                                      evaluation_experiment=evaluation_experiment,
+                                      variable=variable,
+                                      use_orography=use_orography)
+                                      
         return metric_dir / f"metric_{metric_name}_{run_id}.nc"
+
 
 def _load_metrics_registry(metrics_path: str | Path) -> dict:
     """Load metrics configuration from JSON file."""
@@ -277,6 +305,7 @@ def _load_metrics_registry(metrics_path: str | Path) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"Metrics registry not found: {path}")
     return json.loads(path.read_text())
+
 
 def _import_function(module_path: str) -> Callable:
     """
@@ -287,27 +316,3 @@ def _import_function(module_path: str) -> Callable:
     module_name, func_name = module_path.rsplit(".", 1)
     module = importlib.import_module(module_name)
     return getattr(module, func_name)
-
-def _normalize_experiment_for_groundtruth(experiment: str) -> str:
-    """
-    Convert experiment name to ground truth naming convention.
-    
-    Examples:
-        "Emulator_Hist_Future_NO_OROG" -> "Emulator_hist_future"
-        "ESD_Pseudo-Reality_OROG" -> "ESD_pseudo_reality"
-    """
-    # Strip orography suffix
-    base = experiment
-    for suffix in ("_OROG", "_NO_OROG"):
-        if base.endswith(suffix):
-            base = base[: -len(suffix)]
-            break
-
-    # Replace dashes with underscores
-    base = base.replace("-", "_")
-
-    # Convert to ground truth format: first part stays, rest lowercase
-    parts = base.split("_", 1)
-    if len(parts) == 2:
-        return f"{parts[0]}_{parts[1].lower()}"
-    return base.lower()
