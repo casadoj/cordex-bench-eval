@@ -280,6 +280,13 @@ class SubmissionDataLoader:
         """Optionally subset dataset to a single variable."""
         if variable is None:
             return ds
+        
+        # Ensure common spatial coordinate names are treated as coordinates
+        # so they are preserved during subsetting
+        spatial_vars = [v for v in ["lat", "lon", "latitude", "longitude"] if v in ds.data_vars]
+        if spatial_vars:
+            ds = ds.set_coords(spatial_vars)
+
         if variable not in ds.data_vars:
             raise KeyError(f"Variable '{variable}' not found in dataset.")
         return ds[[variable]]
@@ -316,6 +323,12 @@ class GroundTruthDataLoader:
         """List available test periods for a domain."""
         return _list_dir_names(self._test_dir(domain))
 
+    def to_mm_day(self, ds: xr.Dataset) -> xr.Dataset:
+        """Convert the dataset to mm/day."""
+        if "pr" in ds.data_vars:
+            ds["pr"] = ds["pr"] * 86400
+        return ds
+
     def load_train_target(self, domain: str, training_experiment: str,
                           variable: str | None = None, **open_kwargs: Any) -> xr.Dataset:
         """
@@ -339,6 +352,7 @@ class GroundTruthDataLoader:
         """
         path = self._train_target_path(domain, training_experiment)
         ds = xr.open_dataset(path, **open_kwargs)
+
         return self._maybe_subset_variable(ds, variable)
 
     def load_test_target(self, domain: str, training_experiment: str, evaluation_experiment: str,
@@ -385,6 +399,10 @@ class GroundTruthDataLoader:
                 ds = mid_ds
         else:
             ds = xr.open_dataset(self._test_target_path(domain, period, gcm_name), **open_kwargs)
+
+        # Test data for SA domain is in kg m-2 s-1, we need to convert to mm/day
+        if domain == "SA_Domain":
+            ds = self.to_mm_day(ds)
 
         return self._maybe_subset_variable(ds, variable)
 
@@ -463,6 +481,13 @@ class GroundTruthDataLoader:
         """Optionally subset dataset to a single variable."""
         if variable is None:
             return ds
+        
+        # Ensure common spatial coordinate names are treated as coordinates
+        # so they are preserved during subsetting
+        spatial_vars = [v for v in ["lat", "lon", "latitude", "longitude"] if v in ds.data_vars]
+        if spatial_vars:
+            ds = ds.set_coords(spatial_vars)
+
         if variable not in ds.data_vars:
             raise KeyError(f"Variable '{variable}' not found in dataset.")
         return ds[[variable]]

@@ -29,6 +29,35 @@
           "reduction": "abs_mean"
         }
       ]
+    },
+    "pr_perfect_cross_validation": {
+      "description": "PR - Perfect Cross Validation",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "use_orography": true,
+      "metrics": [
+        {
+          "name": "RMSE",
+          "key": "rmse",
+          "reduction": "mean"
+        },
+        {
+          "name": "CDD_bias",
+          "key": "cdd_bias",
+          "reduction": "abs_mean"
+        },
+        {
+          "name": "SDII_ratio",
+          "key": "sdii_ratio",
+          "reduction": "abs_mean"
+        },
+        {
+          "name": "RX1DAY_bias",
+          "key": "rx1day_bias",
+          "reduction": "abs_mean"
+        }
+      ]
     }
   }
 }

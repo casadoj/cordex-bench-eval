@@ -1,0 +1,65 @@
+{
+  "defaults": {
+    "figsize": [12, 10],
+    "dpi": 150,
+    "predictions_per_row": 3,
+    "format": "png",
+    "output_dir": "figures_output",
+    "ground_truth_label": "Ground Truth",
+    "colorbar_label": "Value",
+    "colormap": "turbo",
+    "colorbar": {
+      "levels": 11,
+      "vmin": null,
+      "vmax": null
+    }
+  },
+  "figures": {
+    "sa_pr_daily_snapshot": {
+      "description": "Daily precipitation snapshot for the South America domain.",
+      "domain": "SA_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "use_orography": true,
+      "target_date": "1985-01-15",
+      "colorbar_label": "Daily precipitation (mm/day)",
+      "colorbar": {
+          "levels": 20,
+          "vmin": 0,
+          "vmax": null
+      }
+    },
+    "nz_pr_daily_snapshot": {
+      "description": "Daily precipitation snapshot for the New Zealand domain.",
+      "domain": "NZ_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "use_orography": true,
+      "target_date": "1985-01-15",
+      "colorbar_label": "Daily precipitation (mm/day)",
+      "colorbar": {
+          "levels": 20,
+          "vmin": 0,
+          "vmax": null
+      }
+    },
+    "alps_pr_daily_snapshot": {
+      "description": "Daily precipitation snapshot for the Alps domain.",
+      "domain": "ALPS_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "use_orography": true,
+      "target_date": "1985-01-15",
+      "colorbar_label": "Daily precipitation (mm/day)",
+      "colorbar": {
+          "levels": 20,
+          "vmin": 0,
+          "vmax": null
+      }
+    }
+  }
+}
+

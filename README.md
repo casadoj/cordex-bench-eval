@@ -10,15 +10,16 @@ This package provides a complete workflow for:
 2. **Loading** prediction and ground truth datasets
 3. **Evaluating** predictions using configurable metrics (RMSE, bias indices, etc.)
 4. **Generating tables** for model comparison and analysis
+5. **Creating daily figures** that compare predictions against ground truth
 
 ```
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│   Incoming   │ ───► │   Staging    │ ───► │  Evaluation  │ ───► │    Tables    │
-│   (.zip)     │      │   (NetCDF)   │      │  (metrics)   │      │  (CSV/Excel) │
-└──────────────┘      └──────────────┘      └──────────────┘      └──────────────┘
-        │                    │                     │                      │
-        ▼                    ▼                     ▼                      ▼
-   catalog.json      SubmissionDataLoader    diagnostics/*.nc    Comparison Tables
+┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+│   Incoming   │ ───► │   Staging    │ ───► │  Evaluation  │ ───► │    Tables    │ ───► │    Figures   │
+│   (.zip)     │      │   (NetCDF)   │      │  (metrics)   │      │  (CSV/HTML) │      │  (PNG/PDF)  │
+└──────────────┘      └──────────────┘      └──────────────┘      └──────────────┘      └──────────────┘
+        │                    │                     │                      │                     │
+        ▼                    ▼                     ▼                      ▼                     ▼
+   catalog.json      SubmissionDataLoader    diagnostics/*.nc    Comparison Tables     Daily Snapshots
 ```
 
 ## Installation
@@ -102,6 +103,7 @@ from cordex_bench_eval import (
     GroundTruthDataLoader,
     Evaluator,
     TableGenerator,
+    FigureGenerator,
 )
 from cordex_bench_eval.config import load_config_file
 
@@ -141,6 +143,16 @@ table_gen = TableGenerator(config=config,
 df = table_gen.generate_table(table_name="esd_perfect_extrapolation",
                               submission_names=["DeepESD-v1_IFCA_m1"],
                               include_average=True)
+
+# Generate a daily figure
+figure_gen = FigureGenerator(config=config,
+                             catalog=catalog,
+                             figure_config_path="configs/figures.json")
+figure_path = figure_gen.generate_figure(
+    figure_name="sa_pr_daily_snapshot",
+    submission_names=["DeepESD-v1_IFCA_m1"],
+    target_date="1985-01-15"
+)
 ```
 
 ## Workflow Steps
@@ -295,6 +307,35 @@ table_gen.export_all_tables(output_dir="output/tables",
 - Easy to update with new models (just re-run with updated submission list)
 - Supports multiple export formats (CSV, LaTeX, HTML)
 
+### 7. Generate Daily Figures
+
+After selecting a set of submissions, create daily comparison plots that place
+the ground truth snapshot at the top and predictions below:
+
+```python
+from cordex_bench_eval import FigureGenerator
+
+figure_gen = FigureGenerator(config=config,
+                             catalog=catalog,
+                             figure_config_path="configs/figures.json")
+
+figure_path = figure_gen.generate_figure(
+    figure_name="sa_pr_daily_snapshot",
+    submission_names=["DeepESD-v1_IFCA_m1", "ML-v1"],
+    target_date="1985-01-15",
+    output_dir="figures_output",
+    file_format="png",
+)
+
+print(f"Figure saved to {figure_path}")
+```
+
+**Figure Highlights:**
+- Ground-truth panel is centered on the top row for quick reference
+- All prediction panels share the same discrete turbo colormap and colorbar
+- Layout, colorbar bounds, and output format are controlled via `configs/figures.json`
+- Supports PNG or PDF outputs for publication-ready graphics
+
 ## Configuration
 
 ### `configs/config.json`
@@ -367,6 +408,40 @@ Each table specification defines:
 - **variable**: Which variable (pr, tasmax, etc.)
 - **metrics**: List of metrics to include with their display names and reduction methods
 
+### `configs/figures.json`
+
+Defines figure specifications for the daily snapshot plots:
+
+```json
+{
+  "defaults": {
+    "figsize": [12, 10],
+    "dpi": 150,
+    "predictions_per_row": 3,
+    "format": "png",
+    "output_dir": "figures_output",
+    "colormap": "turbo",
+    "colorbar": { "levels": 11, "vmin": null, "vmax": null }
+  },
+  "figures": {
+    "sa_pr_daily_snapshot": {
+      "description": "Daily precipitation snapshot for the South America domain.",
+      "domain": "SA_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "target_date": "1985-01-15",
+      "use_orography": true,
+      "colorbar_label": "Daily precipitation (mm/day)"
+    }
+  }
+}
+```
+
+Each figure specification defines the scenario (domain, experiments, variable),
+the target date, and any overrides for the plotting defaults (e.g., number of
+columns, figure size, or colorbar label).
+
 ## Directory Structure
 
 ```
@@ -374,7 +449,8 @@ cordex-bench-eval/
 ├── configs/
 │   ├── config.json          # Paths configuration
 │   ├── metrics.json         # Metrics definitions
-│   └── tables.json          # Table specifications
+│   ├── tables.json          # Table specifications
+│   └── figures.json         # Daily figure specifications
 ├── catalog/
 │   └── catalog.json         # Registry of ingested submissions
 ├── data/
@@ -388,6 +464,9 @@ cordex-bench-eval/
 │   ├── submission_handler.py # Archive ingestion
 │   ├── data_loader.py       # Data loading utilities
 │   ├── evaluator.py         # Metrics computation
-│   └── table_generator.py   # Table generation
-└── main.py                  # Complete workflow (evaluation + table generation)
+│   ├── table_generator.py   # Table generation
+│   └── figure_generator.py  # Daily figure generation
+├── tables_output/           # Exported tables
+├── figures_output/          # Exported figures
+└── main.py                  # Complete workflow (evaluation + tables + figures)
 ```

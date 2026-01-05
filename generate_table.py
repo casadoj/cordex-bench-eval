@@ -39,7 +39,7 @@ TRAINING_EXPERIMENT = "ESD_pseudo_reality"
 EVALUATION_EXPERIMENT = "Perfect_cross_validation"
 USE_OROGRAPHY = True
 DOMAINS = ["NZ_Domain", "SA_Domain", "ALPS_Domain"]
-VARIABLE = "tasmax"
+VARIABLE = "pr"
 
 # Run the evaluation
 evaluator = Evaluator(config=config, catalog=catalog, metrics_registry_path=METRICS_PATH,
@@ -58,7 +58,7 @@ table_gen = TableGenerator(config=config,
                            catalog=catalog,
                            table_config_path=TABLES_CONFIG_PATH)
 
-table_name = "tasmax_perfect_cross_validation"
+table_name = "pr_perfect_cross_validation"
 df_single = table_gen.generate_table(table_name=table_name,
                                      submission_names=[SUBMISSION_NAME],
                                      domains=DOMAINS,

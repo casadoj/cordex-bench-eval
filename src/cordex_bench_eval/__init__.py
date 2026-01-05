@@ -24,12 +24,16 @@ Evaluator
 
 TableGenerator
     Generates comparison tables from computed metrics.
+
+FigureGenerator
+    Creates daily figures that compare predictions against ground truth.
 """
 
 from .catalog import CatalogEntry, SubmissionCatalog
 from .config import SubmissionWorkflowConfig, load_config_dict, load_config_file
 from .data_loader import GroundTruthDataLoader, SubmissionDataLoader
 from .evaluator import Evaluator
+from .figure_generator import FigureGenerator
 from .submission_handler import SubmissionHandler
 from .table_generator import TableGenerator
 
@@ -47,5 +51,7 @@ __all__ = [# Configuration
            "GroundTruthDataLoader",
            # Evaluation
            "Evaluator",
+           # Figures
+           "FigureGenerator",
            # Table generation
            "TableGenerator"]

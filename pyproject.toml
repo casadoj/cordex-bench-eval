@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "xarray>=2023.1",
+    "matplotlib>=3.5",
+    "cartopy>=0.20",
 ]
 
 [project.optional-dependencies]
