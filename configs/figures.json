@@ -3,7 +3,7 @@
     "figsize": [12, 10],
     "dpi": 150,
     "predictions_per_row": 3,
-    "format": "png",
+    "format": "pdf",
     "output_dir": "figures_output",
     "ground_truth_label": "Ground Truth",
     "colorbar_label": "Value",

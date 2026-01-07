@@ -27,11 +27,15 @@ TableGenerator
 
 FigureGenerator
     Creates daily figures that compare predictions against ground truth.
+
+DiagnosticFigureGenerator
+    Creates spatial maps of computed diagnostics for multiple submissions.
 """
 
 from .catalog import CatalogEntry, SubmissionCatalog
 from .config import SubmissionWorkflowConfig, load_config_dict, load_config_file
 from .data_loader import GroundTruthDataLoader, SubmissionDataLoader
+from .diagnostic_figure_generator import DiagnosticFigureGenerator
 from .evaluator import Evaluator
 from .figure_generator import FigureGenerator
 from .submission_handler import SubmissionHandler
@@ -53,5 +57,6 @@ __all__ = [# Configuration
            "Evaluator",
            # Figures
            "FigureGenerator",
+           "DiagnosticFigureGenerator",
            # Table generation
            "TableGenerator"]

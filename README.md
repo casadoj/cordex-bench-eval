@@ -9,17 +9,24 @@ This package provides a complete workflow for:
 1. **Ingesting** submission archives (`.zip` files) from participants
 2. **Loading** prediction and ground truth datasets
 3. **Evaluating** predictions using configurable metrics (RMSE, bias indices, etc.)
-4. **Generating tables** for model comparison and analysis
-5. **Creating daily figures** that compare predictions against ground truth
+4. **Generating tables and figures** for model comparison and analysis
 
 ```
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│   Incoming   │ ───► │   Staging    │ ───► │  Evaluation  │ ───► │    Tables    │ ───► │    Figures   │
-│   (.zip)     │      │   (NetCDF)   │      │  (metrics)   │      │  (CSV/HTML) │      │  (PNG/PDF)  │
-└──────────────┘      └──────────────┘      └──────────────┘      └──────────────┘      └──────────────┘
-        │                    │                     │                      │                     │
-        ▼                    ▼                     ▼                      ▼                     ▼
-   catalog.json      SubmissionDataLoader    diagnostics/*.nc    Comparison Tables     Daily Snapshots
+┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+│   Incoming   │ ───► │   Staging    │ ───► │  Evaluation  │
+│   (.zip)     │      │   (NetCDF)   │      │  (metrics)   │
+└──────────────┘      └──────────────┘      └──────────────┘
+                                                   │
+                                                   │
+                           ┌───────────────────────┴───────────────────────┐
+                           │                                               │
+                    ┌──────────────┐                              ┌──────────────┐
+                    │    Tables    │                              │    Figures   │
+                    │  (CSV/HTML)  │                              │  (PNG/PDF)   │
+                    └──────────────┘                              └──────────────┘
+                          │                                               │
+                          ▼                                               ▼
+                  Comparison Tables                                 Various Figures
 ```
 
 ## Installation
@@ -58,13 +65,15 @@ Submissions should be organized following this structure:
 │   └── ...
 └── SA_Domain/
     └── ...
+
+For more details check the [Benchmark documentation](https://docs.google.com/document/d/1zM6Aza1glzBJ8Ewvhu0_0vcm5dvctJ65Bypt1gnN2ck/edit?usp=sharing).
 ```
 
 Key points:
 - **Domains**: `ALPS_Domain`, `NZ_Domain`, `SA_Domain`
-- **Training Experiments**: `Emulator_hist_future`, `ESD_pseudo_reality` (with `_OROG` or `_NO_OROG` suffix)
+- **Training Experiments**: `ESD_pseudo_reality`, `Emulator_hist_future` (with `_OROG` or `_NO_OROG` suffix)
 - **Periods**: `historical`, `mid_century`, `end_century`
-- **Conditions**: `perfect` (same GCM as training), `imperfect` (different GCM)
+- **Conditions**: `perfect` (within the same RCM as training), `imperfect` (directly on the GCM)
 - **Files**: Named as `Predictions_pr_tasmax_<GCM>_<date_range>.nc` (contains both `pr` and `tasmax` variables)
 
 ## Evaluation Experiments
@@ -104,16 +113,19 @@ from cordex_bench_eval import (
     Evaluator,
     TableGenerator,
     FigureGenerator,
+    DiagnosticFigureGenerator,
 )
+
 from cordex_bench_eval.config import load_config_file
 
 # Load configuration
 config = load_config_file("configs/config.json")
 
-# Load a prediction dataset
+# Set the submission loader
 catalog = SubmissionCatalog(config.catalog_path)
 loader = SubmissionDataLoader(catalog)
 
+# Load a specific submission
 ds = loader.load_dataset(submission_name="DeepESD-v1_IFCA_m1",
                          domain="ALPS_Domain",
                          training_experiment="Emulator_hist_future",
@@ -121,38 +133,37 @@ ds = loader.load_dataset(submission_name="DeepESD-v1_IFCA_m1",
                          use_orography=True,
                          variable="pr")
 
-# Run evaluation
+# Set the evaluator
 evaluator = Evaluator(config=config,
                       catalog=catalog,
                       metrics_registry_path="configs/metrics.json",
                       ml_benchmark_path=config.mlbenchmark_path)
 
+# Run the evaluation
+# (results are saved as NetCDF files and returned as a dict of xr.Datasets)
 results = evaluator.evaluate(submission_name="DeepESD-v1_IFCA_m1",
                              domain="ALPS_Domain",
                              training_experiment="Emulator_hist_future",
                              evaluation_experiment="Perfect_cross_validation",
                              variable="pr",
-                             use_orography=True,)
-# Results are saved as NetCDF files and returned as a dict of xr.Dataset
+                             use_orography=True)
 
 # Generate comparison tables
 table_gen = TableGenerator(config=config,
                            catalog=catalog,
                            table_config_path="configs/tables.json")
 
-df = table_gen.generate_table(table_name="esd_perfect_extrapolation",
+df = table_gen.generate_table(table_name="tasmax_perfect_cross_validation",
                               submission_names=["DeepESD-v1_IFCA_m1"],
                               include_average=True)
 
-# Generate a daily figure
+# Generate figures
 figure_gen = FigureGenerator(config=config,
                              catalog=catalog,
                              figure_config_path="configs/figures.json")
-figure_path = figure_gen.generate_figure(
-    figure_name="sa_pr_daily_snapshot",
-    submission_names=["DeepESD-v1_IFCA_m1"],
-    target_date="1985-01-15"
-)
+
+figure_path = figure_gen.generate_figure(figure_name="alps_pr_daily_snapshot",
+                                         submission_names=["DeepESD-v1_IFCA_m1"])
 ```
 
 ## Workflow Steps
@@ -172,9 +183,9 @@ ingested = handler.ingest()
 print(f"Ingested {len(ingested)} submissions")
 ```
 
-This extracts archives to `staging/` and registers them in `catalog.json` with metadata from NetCDF attributes.
+This extracts archives to `staging/` and registers them in `catalog.json`.
 
-### 2. Run Complete Workflow (Evaluation + Table Generation)
+### 2. Run Complete Workflow (Evaluation + Table/Figures Generation)
 
 The simplest way to use the package is to run `main.py`, which demonstrates the complete workflow:
 
@@ -183,162 +194,17 @@ python main.py
 ```
 
 This script:
-1. Loads all submissions from the catalog
-2. Demonstrates data loading and exploration
-3. Runs evaluation with metrics computation
-4. Generates all available comparison tables
-5. Exports tables in multiple formats (CSV, Excel, HTML)
-
-For more fine-grained control, see the next sections.
-
-### 3. Load Prediction Data
-
-```python
-from cordex_bench_eval import SubmissionCatalog, SubmissionDataLoader
-
-catalog = SubmissionCatalog("catalog/catalog.json")
-loader = SubmissionDataLoader(catalog)
-
-# Explore what's available
-print(loader.available_domains("DeepESD-v1_IFCA_m1"))
-print(loader.available_experiments("DeepESD-v1_IFCA_m1", "ALPS_Domain"))
-print(loader.available_periods("DeepESD-v1_IFCA_m1", "ALPS_Domain", "Emulator_hist_future_OROG"))
-print(loader.available_conditions("DeepESD-v1_IFCA_m1", "ALPS_Domain", 
-                                   "Emulator_hist_future_OROG", "historical"))
-
-# Load a dataset using training + evaluation experiment
-ds = loader.load_dataset(submission_name="DeepESD-v1_IFCA_m1",
-                         domain="ALPS_Domain",
-                         training_experiment="Emulator_hist_future",
-                         evaluation_experiment="Perfect_cross_validation",
-                         use_orography=True, # Appends _OROG to experiment name
-                         variable="pr")
-```
-
-The loader automatically:
-- Maps the evaluation experiment to the correct period/condition/GCM combination
-- Handles `mid_end_century` periods by merging mid and end century files
-- Supports case-insensitive experiment name matching
-
-### 4. Load Ground Truth Data
-
-```python
-from cordex_bench_eval import GroundTruthDataLoader
-
-gt_loader = GroundTruthDataLoader("data/target")
-
-# Training data
-ds_train = gt_loader.load_train_target(domain="ALPS",
-                                       training_experiment="Emulator_hist_future",
-                                       variable="pr")
-
-# Test data (for evaluation)
-ds_test = gt_loader.load_test_target(domain="ALPS",
-                                     training_experiment="Emulator_hist_future",
-                                     evaluation_experiment="Perfect_cross_validation",
-                                     variable="pr")
-```
-
-### 5. Run Evaluation
-
-```python
-from cordex_bench_eval import Evaluator
-
-evaluator = Evaluator(config=config,
-                      catalog=catalog,
-                      metrics_registry_path="configs/metrics.json",
-                      ml_benchmark_path="/path/to/ml-benchmark")
-
-# Compute metrics (uses defaults from metrics.json)
-results = evaluator.evaluate(submission_name="DeepESD-v1_IFCA_m1",
-                             domain="ALPS_Domain",
-                             training_experiment="Emulator_hist_future",
-                             evaluation_experiment="Perfect_cross_validation",
-                             variable="pr",
-                             use_orography=True)
-
-# Or specify which metrics to compute
-results = evaluator.evaluate(..., metrics=["rmse", "cdd_bias", "rx1day_bias"])
-
-# Load a previously computed metric
-rmse = evaluator.load_metric(submission_name="DeepESD-v1_IFCA_m1",
-                             domain="ALPS_Domain",
-                             training_experiment="Emulator_hist_future",
-                             evaluation_experiment="Perfect_cross_validation",
-                             variable="pr",
-                             metric_name="rmse",
-                             use_orography=True)
-```
-
-### 6. Generate Comparison Tables
-
-After computing metrics for multiple models, generate comparison tables:
-
-```python
-from cordex_bench_eval import TableGenerator
-
-table_gen = TableGenerator(config=config,
-                           catalog=catalog,
-                           table_config_path="configs/tables.json")
-
-# Generate a single table
-df = table_gen.generate_table(table_name="esd_perfect_extrapolation",
-                              submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2", "ML-v1"],
-                              domains=["NZ_Domain", "SA_Domain", "ALPS_Domain"],
-                              include_average=True)
-
-# Export to various formats
-table_gen.export_table(df, "output/table.csv", format="csv")
-table_gen.export_table(df, "output/table.html", format="html")
-
-# Generate all tables at once
-all_tables = table_gen.generate_all_tables(submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2"])
-
-# Export all tables
-table_gen.export_all_tables(output_dir="output/tables",
-                            format="csv",
-                            submission_names=["DeepESD-v1_IFCA_m1", "XGBoost-v2"])
-```
-
-**Key Features:**
-- Tables aggregate pre-computed metrics across models and domains
-- Multi-index structure: (Metric, Domain) x Models
-- Automatically computes average (AV) across domains
-- Easy to update with new models (just re-run with updated submission list)
-- Supports multiple export formats (CSV, LaTeX, HTML)
-
-### 7. Generate Daily Figures
-
-After selecting a set of submissions, create daily comparison plots that place
-the ground truth snapshot at the top and predictions below:
-
-```python
-from cordex_bench_eval import FigureGenerator
-
-figure_gen = FigureGenerator(config=config,
-                             catalog=catalog,
-                             figure_config_path="configs/figures.json")
-
-figure_path = figure_gen.generate_figure(
-    figure_name="sa_pr_daily_snapshot",
-    submission_names=["DeepESD-v1_IFCA_m1", "ML-v1"],
-    target_date="1985-01-15",
-    output_dir="figures_output",
-    file_format="png",
-)
-
-print(f"Figure saved to {figure_path}")
-```
-
-**Figure Highlights:**
-- Ground-truth panel is centered on the top row for quick reference
-- All prediction panels share the same discrete turbo colormap and colorbar
-- Layout, colorbar bounds, and output format are controlled via `configs/figures.json`
-- Supports PNG or PDF outputs for publication-ready graphics
+- Loads all available submissions from the catalog
+- Demonstrates data loading and exploration
+- Runs evaluation with metrics computation
+- Generates comparison tables and export them in multiple formats (CSV, Excel, HTML)
+- Generates some figures
 
 ## Configuration
 
 ### `configs/config.json`
+
+Set standard paths to ensure the workflow functions correctly.
 
 ```json
 {
@@ -366,7 +232,7 @@ Defines available metrics and defaults per variable:
   },
   "defaults": {
     "pr": ["rmse", "cdd_bias", "sdii_ratio", "rx1day_bias"],
-    "tasmax": ["rmse", "txx_bias", "su_bias"]
+    "tasmax": ["rmse", "mean_bias", "txx_bias", "su_bias"]
   }
 }
 ```
@@ -402,15 +268,9 @@ Defines table specifications for model comparison:
 }
 ```
 
-Each table specification defines:
-- **training_experiment**: Which training experiment was used
-- **evaluation_experiment**: Which evaluation scenario (e.g., Perfect_cross_validation)
-- **variable**: Which variable (pr, tasmax, etc.)
-- **metrics**: List of metrics to include with their display names and reduction methods
-
 ### `configs/figures.json`
 
-Defines figure specifications for the daily snapshot plots:
+Defines figure specifications for plotting daily fields:
 
 ```json
 {
@@ -418,10 +278,16 @@ Defines figure specifications for the daily snapshot plots:
     "figsize": [12, 10],
     "dpi": 150,
     "predictions_per_row": 3,
-    "format": "png",
+    "format": "pdf",
     "output_dir": "figures_output",
+    "ground_truth_label": "Ground Truth",
+    "colorbar_label": "Value",
     "colormap": "turbo",
-    "colorbar": { "levels": 11, "vmin": null, "vmax": null }
+    "colorbar": {
+      "levels": 11,
+      "vmin": null,
+      "vmax": null
+    }
   },
   "figures": {
     "sa_pr_daily_snapshot": {
@@ -442,31 +308,75 @@ Each figure specification defines the scenario (domain, experiments, variable),
 the target date, and any overrides for the plotting defaults (e.g., number of
 columns, figure size, or colorbar label).
 
+### `configs/diagnostic_figures.json`
+
+Defines diagnostic figure specifications for spatial maps of computed metrics:
+
+```json
+{
+  "defaults": {
+    "figsize": [12, 8],
+    "dpi": 150,
+    "plots_per_row": 3,
+    "format": "pdf",
+    "output_dir": "diagnostic_figures_output",
+    "colorbar_orientation": "horizontal",
+    "colorbar_label": "Value",
+    "colormap": "viridis",
+    "colorbar": {
+      "levels": 11,
+      "vmin": null,
+      "vmax": null
+    }
+  },
+  "figures": {
+    "sa_pr_rmse_map": {
+      "description": "RMSE spatial map for precipitation in South America domain.",
+      "domain": "SA_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "metric": "rmse",
+      "use_orography": true,
+      "colorbar_label": "RMSE (mm/day)",
+      "colormap": "Reds"
+    }
+  }
+}
+```
+
+Each diagnostic figure specification defines the scenario (domain, experiments, variable),
+the metric to visualize, and any overrides for the plotting defaults.
+
+## Examples of Figure and Table generations
+
+An example of figure and tables generation is included in `./figs` and `./tables`
+
 ## Directory Structure
 
 ```
 cordex-bench-eval/
 ├── configs/
-│   ├── config.json          # Paths configuration
-│   ├── metrics.json         # Metrics definitions
-│   ├── tables.json          # Table specifications
-│   └── figures.json         # Daily figure specifications
+│   ├── config.json             # Paths configuration
+│   ├── metrics.json            # Metrics definitions
+│   ├── tables.json             # Table specifications
+│   ├── figures.json            # Daily figure specifications
+│   └── diagnostic_figures.json # Diagnostic figure specifications
 ├── catalog/
-│   └── catalog.json         # Registry of ingested submissions
+│   └── catalog.json            # Registry of ingested submissions
 ├── data/
-│   ├── incoming/            # Drop .zip files here
-│   ├── staging/             # Extracted submissions
-│   ├── target/              # Ground truth data
-│   └── diagnostics/         # Computed metrics output
+│   ├── incoming/               # Drop .zip files here
+│   ├── staging/                # Extracted submissions
+│   ├── target/                 # Ground truth data
+│   └── diagnostics/            # Computed metrics output
 ├── src/cordex_bench_eval/
-│   ├── config.py            # Configuration loading
-│   ├── catalog.py           # Submission catalog
-│   ├── submission_handler.py # Archive ingestion
-│   ├── data_loader.py       # Data loading utilities
-│   ├── evaluator.py         # Metrics computation
-│   ├── table_generator.py   # Table generation
-│   └── figure_generator.py  # Daily figure generation
-├── tables_output/           # Exported tables
-├── figures_output/          # Exported figures
-└── main.py                  # Complete workflow (evaluation + tables + figures)
+│   ├── config.py                     # Configuration loading
+│   ├── catalog.py                    # Submission catalog
+│   ├── submission_handler.py         # Archive ingestion
+│   ├── data_loader.py                # Data loading utilities
+│   ├── evaluator.py                  # Metrics computation
+│   ├── table_generator.py            # Table generation
+│   ├── figure_generator.py           # Daily figure generation
+│   └── diagnostic_figure_generator.py # Diagnostic figure generation
+└── main.py                       # Complete workflow
 ```

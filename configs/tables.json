@@ -1,9 +1,38 @@
 {
   "metrics_registry_path": "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/metrics.json",
   "tables": {
+    "pr_emulator_perfect_cross_validation": {
+      "description": "PR - (Emulation) Perfect Cross Validation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "use_orography": false,
+      "metrics": [
+        {
+          "name": "RMSE",
+          "key": "rmse",
+          "reduction": "mean"
+        },
+        {
+          "name": "CDD_bias",
+          "key": "cdd_bias",
+          "reduction": "mean"
+        },
+        {
+          "name": "SDII_ratio",
+          "key": "sdii_ratio",
+          "reduction": "mean"
+        },
+        {
+          "name": "RX1DAY_bias",
+          "key": "rx1day_bias",
+          "reduction": "mean"
+        }
+      ]
+    },
     "tasmax_perfect_cross_validation": {
-      "description": "TASMAX - Perfect Cross Validation",
-      "training_experiment": "ESD_pseudo_reality",
+      "description": "TASMAX - (Emulation) Perfect Cross Validation",
+      "training_experiment": "Emulator_hist_future",
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "tasmax",
       "use_orography": true,
@@ -26,35 +55,6 @@
         {
           "name": "TXX_bias",
           "key": "txx_bias",
-          "reduction": "abs_mean"
-        }
-      ]
-    },
-    "pr_perfect_cross_validation": {
-      "description": "PR - Perfect Cross Validation",
-      "training_experiment": "ESD_pseudo_reality",
-      "evaluation_experiment": "Perfect_cross_validation",
-      "variable": "pr",
-      "use_orography": true,
-      "metrics": [
-        {
-          "name": "RMSE",
-          "key": "rmse",
-          "reduction": "mean"
-        },
-        {
-          "name": "CDD_bias",
-          "key": "cdd_bias",
-          "reduction": "abs_mean"
-        },
-        {
-          "name": "SDII_ratio",
-          "key": "sdii_ratio",
-          "reduction": "abs_mean"
-        },
-        {
-          "name": "RX1DAY_bias",
-          "key": "rx1day_bias",
           "reduction": "abs_mean"
         }
       ]

@@ -1,0 +1,100 @@
+{
+  "defaults": {
+    "figsize": [12, 8],
+    "dpi": 150,
+    "plots_per_row": 3,
+    "format": "pdf",
+    "output_dir": "diagnostic_figures_output",
+    "colorbar_orientation": "horizontal",
+    "colorbar_label": "Value",
+    "colormap": "viridis",
+    "colorbar": {
+      "levels": 11,
+      "vmin": null,
+      "vmax": null
+    }
+  },
+  "figures": {
+    "alps_pr_rmse_map": {
+      "description": "RMSE spatial map for precipitation in Alps domain.",
+      "domain": "ALPS_Domain",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "metric": "rmse",
+      "use_orography": false,
+      "colorbar_label": "RMSE (mm/day)",
+      "colormap": "Reds",
+      "colorbar": {
+        "levels": 15,
+        "vmin": 0,
+        "vmax": null
+      }
+    },
+    "sa_pr_rmse_map": {
+      "description": "RMSE spatial map for precipitation in South America domain.",
+      "domain": "SA_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "metric": "rmse",
+      "use_orography": true,
+      "colorbar_label": "RMSE (mm/day)",
+      "colormap": "Reds",
+      "colorbar": {
+        "levels": 15,
+        "vmin": 0,
+        "vmax": null
+      }
+    },
+    "nz_pr_rmse_map": {
+      "description": "RMSE spatial map for precipitation in New Zealand domain.",
+      "domain": "NZ_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "metric": "rmse",
+      "use_orography": true,
+      "colorbar_label": "RMSE (mm/day)",
+      "colormap": "Reds",
+      "colorbar": {
+        "levels": 15,
+        "vmin": 0,
+        "vmax": null
+      }
+    },
+    "alps_tasmax_rmse_map": {
+      "description": "RMSE spatial map for maximum temperature in Alps domain.",
+      "domain": "ALPS_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "tasmax",
+      "metric": "rmse",
+      "use_orography": true,
+      "colorbar_label": "RMSE (K)",
+      "colormap": "Reds",
+      "colorbar": {
+        "levels": 15,
+        "vmin": 0,
+        "vmax": null
+      }
+    },
+    "alps_txx_map": {
+      "description": "TXX spatial map for maximum temperature in Alps domain.",
+      "domain": "ALPS_Domain",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "tasmax",
+      "metric": "txx_bias",
+      "use_orography": true,
+      "colorbar_label": "TXX bias (K)",
+      "colormap": "RdBu_r",
+      "colorbar": {
+        "levels": 15,
+        "vmin": -4,
+        "vmax": 4
+      }
+    }
+  }
+}
+

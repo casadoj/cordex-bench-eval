@@ -273,44 +273,9 @@ class FigureGenerator:
     def _draw_dataarray(self, ax: plt.Axes, data_array: xr.DataArray,
                         cmap: mcolors.Colormap, norm: mcolors.Normalize) -> None:
         """Draw the data array on the axes"""
-        # Squeeze without dropping coordinates, as some coordinates (like lon/lat) 
-        # might depend on dimensions that are being squeezed (e.g. time).
-        arr2d = data_array.squeeze()
-        
-        # Prefer longitude and latitude coordinates as they are required for the PlateCarree transform.
-        # We look for them in coords, but we are flexible with naming.
-        lon_coord = next((c for c in arr2d.coords if any(k in c.lower() for k in ["lon", "longitude"])), None)
-        lat_coord = next((c for c in arr2d.coords if any(k in c.lower() for k in ["lat", "latitude"])), None)
-
-        if lon_coord and lat_coord:
-            x_vals = arr2d[lon_coord].values
-            y_vals = arr2d[lat_coord].values
-        else:
-            # Fallback to x/y if they exist as coordinates or dimensions
-            x_coord = next((c for c in ["x"] if c in arr2d.coords or c in arr2d.dims), None)
-            y_coord = next((c for c in ["y"] if c in arr2d.coords or c in arr2d.dims), None)
-
-            if x_coord and y_coord:
-                x_vals = arr2d[x_coord].values
-                y_vals = arr2d[y_coord].values
-            else:
-                # Still fallback to dimension-based inference if specific names aren't found
-                y_dim = self._infer_dim(arr2d, axis="y")
-                x_dim = self._infer_dim(arr2d, axis="x")
-                y_vals = arr2d[y_dim].values
-                x_vals = arr2d[x_dim].values
-            
-        # If coordinates are 1D, we need to create a meshgrid for pcolormesh
-        if x_vals.ndim == 1 and y_vals.ndim == 1:
-            x_vals, y_vals = np.meshgrid(x_vals, y_vals)
-        
-        # Ensure data is also 2D for pcolormesh
-        data_values = arr2d.values
-        if data_values.ndim > 2:
-            data_values = data_values.squeeze()
-
-        ax.pcolormesh(x_vals, y_vals, data_values, cmap=cmap, norm=norm, 
-                      shading="nearest", transform=ccrs.PlateCarree())
+        ax.pcolormesh(data_array['lon'].values, data_array['lat'].values,
+                      data_array, cmap=cmap, norm=norm, 
+                      transform=ccrs.PlateCarree())
         
         ax.coastlines(resolution='50m', color='black', linewidth=0.5)
         ax.add_feature(cfeature.BORDERS, linewidth=0.3, edgecolor='gray')
