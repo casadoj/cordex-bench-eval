@@ -64,3 +64,10 @@ table_gen.export_table(df=df_single,
                        format="html")
                        
 print(f"Saved HTML: {OUTPUT_DIR}/{table_name}.html")
+
+# Export the table to CSV
+table_gen.export_table(df=df_single,
+                       output_path=f"{OUTPUT_DIR}/{table_name}.csv",
+                       format="csv")
+                       
+print(f"Saved CSV: {OUTPUT_DIR}/{table_name}.csv")

@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import importlib
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, List
 
@@ -57,7 +56,7 @@ class Evaluator:
     def evaluate(self, submission_name: str, domain: str, training_experiment: str,
                  evaluation_experiment: str, variable: str, metrics: List[str] | None = None,
                  use_orography: bool | None = None, season: str | None = None,
-                 run_id: str | None = None, **open_kwargs: Any) -> dict[str, xr.Dataset]:
+                 **open_kwargs: Any) -> dict[str, xr.Dataset]:
         """
         Compute metrics for a prediction and save results.
         
@@ -79,8 +78,6 @@ class Evaluator:
             Toggle orography variant of experiment.
         season : str, optional
             Season filter ("winter", "summer", "spring", "autumn").
-        run_id : str, optional
-            Identifier for this run. If None, uses timestamp.
         **open_kwargs
             Additional arguments passed to xarray.open_dataset().
         
@@ -89,9 +86,6 @@ class Evaluator:
         dict[str, xr.Dataset]
             Dictionary mapping metric names to computed result datasets.
         """
-        if run_id is None:
-            run_id = datetime.now(tz=timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-
         if metrics is None:
             metrics = self.metrics_registry.get("defaults", {}).get(variable, [])
 
@@ -122,7 +116,6 @@ class Evaluator:
                                             evaluation_experiment=evaluation_experiment,
                                             variable=variable,
                                             metric_name=metric_name,
-                                            run_id=run_id,
                                             use_orography=use_orography)
             metric_path.parent.mkdir(parents=True, exist_ok=True)
             metric_ds.to_netcdf(metric_path)
@@ -156,7 +149,7 @@ class Evaluator:
 
     def load_metric(self, submission_name: str, domain: str, training_experiment: str,
                     evaluation_experiment: str, variable: str, metric_name: str,
-                    run_id: str | None = None, use_orography: bool | None = None,
+                    use_orography: bool | None = None,
                     **open_kwargs: Any) -> xr.Dataset:
         """
         Load a previously saved metric.
@@ -165,37 +158,18 @@ class Evaluator:
         ----------
         metric_name : str
             Name of the metric to load.
-        run_id : str, optional
-            Specific run_id to load. If None, loads the most recent.
         
         Returns
         -------
         xr.Dataset
             Loaded metric dataset.
         """
-        if run_id is None:
-            # Find most recent metric file
-            metric_files = self.available_metric_files(submission_name=submission_name,
-                                                       domain=domain,
-                                                       training_experiment=training_experiment,
-                                                       evaluation_experiment=evaluation_experiment,
-                                                       variable=variable,
-                                                       use_orography=use_orography)
-
-            matching = [f for f in metric_files if f.startswith(f"metric_{metric_name}_")]
-            if not matching:
-                raise FileNotFoundError(f"No metric file found for '{metric_name}' in evaluation '{evaluation_experiment}'.")
-
-            # Extract run_id from filename: metric_<name>_<runid>.nc
-            run_id = matching[-1].replace(f"metric_{metric_name}_", "").replace(".nc", "")
-
         metric_path = self._metric_path(submission_name=submission_name,
                                         domain=domain,
                                         training_experiment=training_experiment,
                                         evaluation_experiment=evaluation_experiment,
                                         variable=variable,
                                         metric_name=metric_name,
-                                        run_id=run_id,
                                         use_orography=use_orography)
 
         if not metric_path.exists():
@@ -286,7 +260,7 @@ class Evaluator:
                 / evaluation_experiment)
 
     def _metric_path(self, submission_name: str, domain: str, training_experiment: str,
-                     evaluation_experiment: str, variable: str, metric_name: str, run_id: str,
+                     evaluation_experiment: str, variable: str, metric_name: str,
                      use_orography: bool | None = None) -> Path:
         """Build file path for a metric NetCDF."""
         metric_dir = self._metric_dir(submission_name=submission_name,
@@ -296,7 +270,7 @@ class Evaluator:
                                       variable=variable,
                                       use_orography=use_orography)
                                       
-        return metric_dir / f"metric_{metric_name}_{run_id}.nc"
+        return metric_dir / f"metric_{metric_name}.nc"
 
 
 def _load_metrics_registry(metrics_path: str | Path) -> dict:
