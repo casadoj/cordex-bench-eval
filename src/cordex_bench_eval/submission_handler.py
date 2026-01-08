@@ -82,7 +82,8 @@ class SubmissionHandler:
         """
         Extract submission metadata from a NetCDF file.
         
-        Looks for standard attributes like in the first NetCDF file found.
+        Looks for standard attributes in the first NetCDF file found,
+        including CORDEX ML-Benchmark-specific attributes.
         
         Parameters
         ----------
@@ -94,7 +95,26 @@ class SubmissionHandler:
         dict
             Extracted metadata attributes.
         """
-        desired_attrs = ("esd_method_id", "esd_method_version", "training_methodology_id")
+        desired_attrs = ("esd_method_id",
+                         "esd_method_version",
+                         "training_methodology_id",
+                         "project_id",
+                         "activity_id",
+                         "product",
+                         "benchmark_id",
+                         "institution_id",
+                         "institution",
+                         "contact",
+                         "creation_date",
+                         "emulator_id",
+                         "emulator",
+                         "training_id",
+                         "training",
+                         "stochastic_output",
+                         "version_realization",
+                         "version_realization_info",
+                         "reference_url",
+                         "reproducibility_url")
 
         nc_file = next(staged_dir.rglob("*.nc"), None)
         if nc_file is None:
