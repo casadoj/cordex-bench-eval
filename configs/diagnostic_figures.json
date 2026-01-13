@@ -22,7 +22,6 @@
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
       "metric": "rmse",
-      "use_orography": false,
       "colorbar_label": "RMSE (mm/day)",
       "colormap": "Reds",
       "colorbar": {
@@ -38,7 +37,6 @@
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
       "metric": "rmse",
-      "use_orography": true,
       "colorbar_label": "RMSE (mm/day)",
       "colormap": "Reds",
       "colorbar": {
@@ -54,7 +52,6 @@
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
       "metric": "rmse",
-      "use_orography": true,
       "colorbar_label": "RMSE (mm/day)",
       "colormap": "Reds",
       "colorbar": {
@@ -70,7 +67,6 @@
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "tasmax",
       "metric": "rmse",
-      "use_orography": true,
       "colorbar_label": "RMSE (K)",
       "colormap": "Reds",
       "colorbar": {
@@ -86,7 +82,6 @@
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "tasmax",
       "metric": "txx_bias",
-      "use_orography": true,
       "colorbar_label": "TXX bias (K)",
       "colormap": "RdBu_r",
       "colorbar": {

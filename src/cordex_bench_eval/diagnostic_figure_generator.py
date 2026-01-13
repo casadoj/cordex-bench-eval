@@ -26,7 +26,7 @@ from .evaluator import Evaluator
 
 # Keys that describe the scientific scenario (non-plot settings) in the figure spec
 _SCENARIO_KEYS = {"description", "domain", "training_experiment",
-                  "evaluation_experiment", "variable", "use_orography", "metric"}
+                  "evaluation_experiment", "variable", "metric"}
 
 class DiagnosticFigureGenerator:
     """
@@ -85,15 +85,13 @@ class DiagnosticFigureGenerator:
         evaluation_experiment = spec["evaluation_experiment"]
         variable = spec["variable"]
         metric = spec["metric"]
-        use_orography = spec.get("use_orography")
 
         diagnostics = self._load_diagnostics(submissions=submissions,
                                              domain=domain,
                                              training_experiment=training_experiment,
                                              evaluation_experiment=evaluation_experiment,
                                              variable=variable,
-                                             metric=metric,
-                                             use_orography=use_orography)
+                                             metric=metric)
 
         destination = self._resolve_output_path(figure_name=figure_name,
                                                 output_path=output_path,
@@ -128,8 +126,7 @@ class DiagnosticFigureGenerator:
 
     def _load_diagnostics(self, submissions: Sequence[str], domain: str,
                           training_experiment: str, evaluation_experiment: str,
-                          variable: str, metric: str,
-                          use_orography: bool | None) -> List[Tuple[str, xr.DataArray]]:
+                          variable: str, metric: str) -> List[Tuple[str, xr.DataArray]]:
         """Load the diagnostic data arrays for all submissions."""
         loaded: List[Tuple[str, xr.DataArray]] = []
         for submission in submissions:
@@ -140,8 +137,7 @@ class DiagnosticFigureGenerator:
                                                training_experiment=training_experiment,
                                                evaluation_experiment=evaluation_experiment,
                                                variable=variable,
-                                               metric_name=metric,
-                                               use_orography=use_orography)
+                                               metric_name=metric)
                 
                 # Extract the diagnostic variable from the dataset
                 # Metrics may have different variable names, so we take the first data variable

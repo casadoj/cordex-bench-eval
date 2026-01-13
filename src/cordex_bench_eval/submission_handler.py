@@ -80,10 +80,11 @@ class SubmissionHandler:
 
     def _extract_metadata(self, staged_dir: Path) -> Dict[str, str]:
         """
-        Extract submission metadata from a NetCDF file.
+        Extract submission metadata from a NetCDF file and directory name.
         
         Looks for standard attributes in the first NetCDF file found,
-        including CORDEX ML-Benchmark-specific attributes.
+        including CORDEX ML-Benchmark-specific attributes. Also detects
+        whether the submission uses orography based on the directory name.
         
         Parameters
         ----------
@@ -93,8 +94,15 @@ class SubmissionHandler:
         Returns
         -------
         dict
-            Extracted metadata attributes.
+            Extracted metadata attributes including 'uses_orography'.
         """
+        metadata = {}
+        
+        # Detect orography usage from directory name (e.g., DeepESD-asym1-orog)
+        dir_name = staged_dir.name.lower()
+        uses_orography = "true" if dir_name.endswith("-orog") else "false"
+        metadata["uses_orography"] = uses_orography
+        
         desired_attrs = ("esd_method_id",
                          "esd_method_version",
                          "training_methodology_id",
@@ -118,9 +126,13 @@ class SubmissionHandler:
 
         nc_file = next(staged_dir.rglob("*.nc"), None)
         if nc_file is None:
-            return {}
+            return metadata
         try:
             with xr.open_dataset(nc_file, decode_cf=False) as ds:
-                return {key: str(ds.attrs[key]) for key in desired_attrs if key in ds.attrs}
+                for key in desired_attrs:
+                    if key in ds.attrs:
+                        metadata[key] = str(ds.attrs[key])
         except Exception:
-            return {}
+            pass
+        
+        return metadata

@@ -88,7 +88,6 @@ class TableGenerator:
         training_experiment = table_spec["training_experiment"]
         evaluation_experiment = table_spec["evaluation_experiment"]
         variable = table_spec["variable"]
-        use_orography = table_spec.get("use_orography")
         metrics_list = table_spec["metrics"]
         
         # Build table data
@@ -112,8 +111,7 @@ class TableGenerator:
                                                         evaluation_experiment=evaluation_experiment,
                                                         variable=variable,
                                                         metric_key=metric_key,
-                                                        reduction_fn=reduction_fn,
-                                                        use_orography=use_orography)
+                                                        reduction_fn=reduction_fn)
                         row_data[submission_name] = value
                     except FileNotFoundError:
                         row_data[submission_name] = np.nan
@@ -134,8 +132,7 @@ class TableGenerator:
                                                             evaluation_experiment=evaluation_experiment,
                                                             variable=variable,
                                                             metric_key=metric_key,
-                                                            reduction_fn=reduction_fn,
-                                                            use_orography=use_orography)
+                                                            reduction_fn=reduction_fn)
 
                             if not np.isnan(value):
                                 domain_values.append(value)
@@ -236,7 +233,7 @@ class TableGenerator:
     def _load_metric_value(self, submission_name: str, domain: str,
                            training_experiment: str, evaluation_experiment: str,
                            variable: str, metric_key: str,
-                           reduction_fn: str = "mean", use_orography: bool | None = None) -> float:
+                           reduction_fn: str = "mean") -> float:
         """
         Load a metric value from diagnostic file and apply reduction.
         
@@ -258,8 +255,7 @@ class TableGenerator:
                                         training_experiment=training_experiment,
                                         evaluation_experiment=evaluation_experiment,
                                         variable=variable,
-                                        metric_name=metric_key,
-                                        use_orography=use_orography)
+                                        metric_name=metric_key)
         
         # Extract the primary variable
         # Most metrics have a single data variable

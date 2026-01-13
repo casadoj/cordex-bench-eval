@@ -19,9 +19,12 @@ class SubmissionDataLoader:
     Load NetCDF files from staged submissions.
     
     Submissions are organized as:
-        <submission>/<domain>/<training_exp>_OROG/<period>/<condition>/<filename>.nc
+        <submission>/<domain>/<training_exp>/<period>/<condition>/<filename>.nc
     
     Where filename is: Predictions_pr_tasmax_<GCM>_<dates>.nc
+    
+    Note: Orography information is now stored in the catalog metadata rather
+    than in the directory structure.
     
     Parameters
     ----------
@@ -66,7 +69,7 @@ class SubmissionDataLoader:
         return [path.name for path in sorted(target_dir.glob("*.nc"))]
 
     def dataset_path(self, submission_name: str, domain: str, training_experiment: str,
-                     evaluation_experiment: str, use_orography: bool | None = None) -> Path:
+                     evaluation_experiment: str) -> Path:
         """
         Get the path to a prediction NetCDF file based on evaluation experiment.
         
@@ -83,19 +86,14 @@ class SubmissionDataLoader:
             Training experiment (e.g., "Emulator_hist_future", "ESD_pseudo_reality").
         evaluation_experiment : str
             Evaluation experiment (e.g., "Perfect_cross_validation").
-        use_orography : bool, optional
-            If True, uses experiment with "_OROG" suffix.
-            If False, uses experiment with "_NO_OROG" suffix.
-            If None, uses experiment name as-is.
         
         Returns
         -------
         Path
             Path to the NetCDF file.
         """
-        # Resolve experiment name with orography suffix (case-insensitive matching)
-        experiment_name = self._resolve_experiment_name(training_experiment, use_orography,
-                                                        submission_name, domain)
+        # Normalize experiment name
+        experiment_name = _normalize_training_experiment(training_experiment)
         
         # Get period, condition, and GCM info from evaluation experiment
         period, condition, same_gcm_as_train = self._resolve_evaluation_experiment(training_experiment,
@@ -125,8 +123,7 @@ class SubmissionDataLoader:
 
     def load_dataset(self, submission_name: str, domain: str, training_experiment: str,
                      evaluation_experiment: str, variable: str | None = None,
-                     use_orography: bool | None = None, merge_mid_end: bool = True,
-                     **open_kwargs: Any) -> xr.Dataset:
+                     merge_mid_end: bool = True, **open_kwargs: Any) -> xr.Dataset:
         """
         Load a prediction dataset for a specific evaluation experiment.
         
@@ -142,8 +139,6 @@ class SubmissionDataLoader:
             Evaluation experiment (e.g., "Perfect_cross_validation").
         variable : str, optional
             Variable to select ("pr" or "tasmax"). If None, returns both.
-        use_orography : bool, optional
-            Toggle orography variant of experiment.
         merge_mid_end : bool, default=True
             If True and period spans mid+end century, merge both files.
         **open_kwargs
@@ -154,8 +149,8 @@ class SubmissionDataLoader:
         xr.Dataset
             Loaded xarray dataset.
         """
-        # Resolve experiment name with orography suffix (case-insensitive matching)
-        experiment_name = self._resolve_experiment_name(training_experiment, use_orography, submission_name, domain)
+        # Normalize experiment name
+        experiment_name = _normalize_training_experiment(training_experiment)
         
         # Get period, condition, and GCM info from evaluation experiment
         period, condition, same_gcm_as_train = self._resolve_evaluation_experiment(training_experiment, evaluation_experiment)
@@ -235,45 +230,6 @@ class SubmissionDataLoader:
             raise KeyError(f"Evaluation experiment '{evaluation_experiment}' not supported for "
                            f"'{training_experiment}'. Available: {available}")
         return _EVAL_SETTINGS[train_exp][evaluation_experiment]
-
-    def _resolve_experiment_name(self, experiment: str, use_orography: bool | None,
-                                 submission_name: str | None = None,
-                                 domain: str | None = None) -> str:
-        """
-        Build the full experiment name with orography suffix.
-        
-        If use_orography is None, returns the experiment unchanged.
-        Otherwise, strips any existing suffix and adds the appropriate one.
-        
-        If submission_name and domain are provided, validates that the
-        experiment folder exists and handles case-insensitive matching.
-        """
-        if use_orography is None:
-            base_name = experiment
-        else:
-            base = experiment
-            for suffix in ("_OROG", "_NO_OROG"):
-                if base.endswith(suffix):
-                    base = base[: -len(suffix)]
-                    break
-            base_name = f"{base}_{'OROG' if use_orography else 'NO_OROG'}"
-        
-        # If submission and domain provided, find actual folder name (case-insensitive)
-        if submission_name and domain:
-            try:
-                available = self.available_experiments(submission_name, domain)
-                # Try exact match first
-                if base_name in available:
-                    return base_name
-                # Try case-insensitive match
-                base_lower = base_name.lower()
-                for exp in available:
-                    if exp.lower() == base_lower:
-                        return exp
-            except FileNotFoundError:
-                pass
-        
-        return base_name
 
     @staticmethod
     def _maybe_subset_variable(ds: xr.Dataset, variable: str | None) -> xr.Dataset:

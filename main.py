@@ -63,10 +63,9 @@ for entry in catalog.all_entries():
 # LOAD A SPECIFIC SUBMISSION
 
 # Select the specific submission to load
-SUBMISSION_NAME = "DeepESD-v1_IFCA_m1"
+SUBMISSION_NAME = "DeepESD-asym1-orog"
 TRAINING_EXPERIMENT = "Emulator_hist_future"
 EVALUATION_EXPERIMENT = "Perfect_cross_validation"
-USE_OROGRAPHY = False
 DOMAIN = "ALPS_Domain"
 VARIABLE = "pr"
 
@@ -77,17 +76,14 @@ loader = SubmissionDataLoader(catalog)
 print(f"Available data for {SUBMISSION_NAME}:")
 print(f"Domains: {loader.available_domains(SUBMISSION_NAME)}")
 print(f"Experiments in {DOMAIN}: {loader.available_experiments(SUBMISSION_NAME, DOMAIN)}")
-
-experiment_name = f"{TRAINING_EXPERIMENT}_{'OROG' if USE_OROGRAPHY else 'NO_OROG'}"
-print(f"Periods in {experiment_name}: {loader.available_periods(SUBMISSION_NAME, DOMAIN, experiment_name)}")
+print(f"Periods in {TRAINING_EXPERIMENT}: {loader.available_periods(SUBMISSION_NAME, DOMAIN, TRAINING_EXPERIMENT)}")
 
 # Load the prediction dataset
 prediction_ds = loader.load_dataset(submission_name=SUBMISSION_NAME,
                                     domain=DOMAIN,
                                     training_experiment=TRAINING_EXPERIMENT,
                                     evaluation_experiment=EVALUATION_EXPERIMENT,
-                                    variable=VARIABLE,
-                                    use_orography=USE_OROGRAPHY)
+                                    variable=VARIABLE)
 print(f"Prediction dataset: {prediction_ds}")
 ########################################################################################
 
@@ -124,8 +120,7 @@ results = evaluator.evaluate(submission_name=SUBMISSION_NAME,
                              domain=DOMAIN,
                              training_experiment=TRAINING_EXPERIMENT,
                              evaluation_experiment=EVALUATION_EXPERIMENT,
-                             variable=VARIABLE,
-                             use_orography=USE_OROGRAPHY)
+                             variable=VARIABLE)
 
 print(f"Computed metrics: {list(results.keys())}")
 
@@ -134,8 +129,7 @@ metric_files = evaluator.available_metric_files(submission_name=SUBMISSION_NAME,
                                                 domain=DOMAIN,
                                                 training_experiment=TRAINING_EXPERIMENT,
                                                 evaluation_experiment=EVALUATION_EXPERIMENT,
-                                                variable=VARIABLE,
-                                                use_orography=USE_OROGRAPHY)
+                                                variable=VARIABLE)
 print(f"Saved metric files for {SUBMISSION_NAME}: {metric_files}")
 
 # Load a specific metric
@@ -145,8 +139,7 @@ metric_ds = evaluator.load_metric(submission_name=SUBMISSION_NAME,
                                   training_experiment=TRAINING_EXPERIMENT,
                                   evaluation_experiment=EVALUATION_EXPERIMENT,
                                   variable=VARIABLE,
-                                  metric_name=metric_to_load,
-                                  use_orography=USE_OROGRAPHY)
+                                  metric_name=metric_to_load)
 print(f"{metric_to_load} result: {metric_ds}")
 ########################################################################################
 

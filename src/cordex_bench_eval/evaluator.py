@@ -55,8 +55,7 @@ class Evaluator:
 
     def evaluate(self, submission_name: str, domain: str, training_experiment: str,
                  evaluation_experiment: str, variable: str, metrics: List[str] | None = None,
-                 use_orography: bool | None = None, season: str | None = None,
-                 **open_kwargs: Any) -> dict[str, xr.Dataset]:
+                 season: str | None = None, **open_kwargs: Any) -> dict[str, xr.Dataset]:
         """
         Compute metrics for a prediction and save results.
         
@@ -74,8 +73,6 @@ class Evaluator:
             Variable name (e.g., "pr", "tasmax").
         metrics : list of str, optional
             Metric names to compute. If None, uses defaults from registry.
-        use_orography : bool, optional
-            Toggle orography variant of experiment.
         season : str, optional
             Season filter ("winter", "summer", "spring", "autumn").
         **open_kwargs
@@ -95,7 +92,6 @@ class Evaluator:
                                                        training_experiment=training_experiment,
                                                        evaluation_experiment=evaluation_experiment,
                                                        variable=variable,
-                                                       use_orography=use_orography,
                                                        **open_kwargs)
 
         # Compute each metric
@@ -115,8 +111,7 @@ class Evaluator:
                                             training_experiment=training_experiment,
                                             evaluation_experiment=evaluation_experiment,
                                             variable=variable,
-                                            metric_name=metric_name,
-                                            use_orography=use_orography)
+                                            metric_name=metric_name)
             metric_path.parent.mkdir(parents=True, exist_ok=True)
             metric_ds.to_netcdf(metric_path)
 
@@ -125,8 +120,7 @@ class Evaluator:
         return results
 
     def available_metric_files(self, submission_name: str, domain: str, training_experiment: str,
-                               evaluation_experiment: str, variable: str,
-                               use_orography: bool | None = None) -> List[str]:
+                               evaluation_experiment: str, variable: str) -> List[str]:
         """
         List saved metric files for a prediction.
         
@@ -139,8 +133,7 @@ class Evaluator:
                                       domain=domain,
                                       training_experiment=training_experiment,
                                       evaluation_experiment=evaluation_experiment,
-                                      variable=variable,
-                                      use_orography=use_orography) 
+                                      variable=variable) 
 
         if not metric_dir.exists():
             return []
@@ -149,7 +142,6 @@ class Evaluator:
 
     def load_metric(self, submission_name: str, domain: str, training_experiment: str,
                     evaluation_experiment: str, variable: str, metric_name: str,
-                    use_orography: bool | None = None,
                     **open_kwargs: Any) -> xr.Dataset:
         """
         Load a previously saved metric.
@@ -169,8 +161,7 @@ class Evaluator:
                                         training_experiment=training_experiment,
                                         evaluation_experiment=evaluation_experiment,
                                         variable=variable,
-                                        metric_name=metric_name,
-                                        use_orography=use_orography)
+                                        metric_name=metric_name)
 
         if not metric_path.exists():
             raise FileNotFoundError(f"Metric file not found: {metric_path}")
@@ -179,8 +170,7 @@ class Evaluator:
 
     def _load_and_align_datasets(self, submission_name: str, domain: str,
                                  training_experiment: str, evaluation_experiment: str,
-                                 variable: str, use_orography: bool | None = None,
-                                 **open_kwargs: Any) -> tuple[xr.Dataset, xr.Dataset]:
+                                 variable: str, **open_kwargs: Any) -> tuple[xr.Dataset, xr.Dataset]:
         """Load prediction and ground truth datasets, aligned on coordinates."""
         # Load prediction
         pred_ds = self.submission_loader.load_dataset(submission_name=submission_name,
@@ -188,7 +178,6 @@ class Evaluator:
                                                       training_experiment=training_experiment,
                                                       evaluation_experiment=evaluation_experiment,
                                                       variable=variable,
-                                                      use_orography=use_orography,
                                                       **open_kwargs)
 
         # Load ground truth
@@ -248,10 +237,10 @@ class Evaluator:
             raise ValueError(f"Unknown metric type: {metric_type}")
 
     def _metric_dir(self, submission_name: str, domain: str, training_experiment: str,
-                    evaluation_experiment: str, variable: str,
-                    use_orography: bool | None = None) -> Path:
+                    evaluation_experiment: str, variable: str) -> Path:
         """Build directory path for storing metrics."""
-        experiment_name = self.submission_loader._resolve_experiment_name(training_experiment, use_orography)
+        from .data_loader import _normalize_training_experiment
+        experiment_name = _normalize_training_experiment(training_experiment)
         return (self.config.diagnostic_path
                 / submission_name
                 / domain
@@ -260,15 +249,13 @@ class Evaluator:
                 / evaluation_experiment)
 
     def _metric_path(self, submission_name: str, domain: str, training_experiment: str,
-                     evaluation_experiment: str, variable: str, metric_name: str,
-                     use_orography: bool | None = None) -> Path:
+                     evaluation_experiment: str, variable: str, metric_name: str) -> Path:
         """Build file path for a metric NetCDF."""
         metric_dir = self._metric_dir(submission_name=submission_name,
                                       domain=domain,
                                       training_experiment=training_experiment,
                                       evaluation_experiment=evaluation_experiment,
-                                      variable=variable,
-                                      use_orography=use_orography)
+                                      variable=variable)
                                       
         return metric_dir / f"metric_{metric_name}.nc"
 

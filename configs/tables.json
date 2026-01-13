@@ -6,7 +6,6 @@
       "training_experiment": "Emulator_hist_future",
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
-      "use_orography": false,
       "metrics": [
         {
           "name": "RMSE",
@@ -35,7 +34,6 @@
       "training_experiment": "Emulator_hist_future",
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "tasmax",
-      "use_orography": true,
       "metrics": [
         {
           "name": "RMSE",

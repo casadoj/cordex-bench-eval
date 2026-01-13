@@ -122,3 +122,22 @@ class SubmissionCatalog:
             The matching entry, or None if not found.
         """
         return self._data.get(name)
+    
+    def uses_orography(self, name: str) -> bool:
+        """
+        Check if a submission uses orography as a predictor.
+        
+        Parameters
+        ----------
+        name : str
+            Submission name to look up.
+        
+        Returns
+        -------
+        bool
+            True if the submission uses orography, False otherwise.
+        """
+        entry = self.get(name)
+        if entry is None:
+            return False
+        return entry.extra.get("uses_orography", "false").lower() == "true"

@@ -42,7 +42,7 @@ Submissions should be organized following this structure:
 ```
 <submission_name>/
 ├── ALPS_Domain/
-│   ├── Emulator_hist_future_OROG/
+│   ├── Emulator_hist_future/
 │   │   ├── historical/
 │   │   │   ├── perfect/
 │   │   │   │   ├── Predictions_pr_tasmax_CNRM-CM5_1981-2000.nc
@@ -55,12 +55,8 @@ Submissions should be organized following this structure:
 │   │   └── end_century/
 │   │       ├── perfect/
 │   │       └── imperfect/
-│   ├── Emulator_hist_future_NO_OROG/
+│   ├── ESD_pseudo_reality/
 │   │   └── ...
-│   ├── ESD_pseudo_reality_OROG/
-│   │   └── ...
-│   └── ESD_pseudo_reality_NO_OROG/
-│       └── ...
 ├── NZ_Domain/
 │   └── ...
 └── SA_Domain/
@@ -71,10 +67,11 @@ For more details check the [Benchmark documentation](https://docs.google.com/doc
 
 Key points:
 - **Domains**: `ALPS_Domain`, `NZ_Domain`, `SA_Domain`
-- **Training Experiments**: `ESD_pseudo_reality`, `Emulator_hist_future` (with `_OROG` or `_NO_OROG` suffix)
+- **Training Experiments**: `ESD_pseudo_reality`, `Emulator_hist_future`
 - **Periods**: `historical`, `mid_century`, `end_century`
 - **Conditions**: `perfect` (within the same RCM as training), `imperfect` (directly on the GCM)
 - **Files**: Named as `Predictions_pr_tasmax_<GCM>_<date_range>.nc` (contains both `pr` and `tasmax` variables)
+- **Orography**: Whether a submission uses orography as a predictor is indicated by the submission archive filename. For versions using orography, the archive should have a `-orog` suffix (e.g., `DeepESD-asym1-orog.zip`). This information is automatically extracted and stored in the catalog during ingestion.
 
 ## Evaluation Experiments
 
@@ -130,7 +127,6 @@ ds = loader.load_dataset(submission_name="DeepESD-v1_IFCA_m1",
                          domain="ALPS_Domain",
                          training_experiment="Emulator_hist_future",
                          evaluation_experiment="Perfect_cross_validation",
-                         use_orography=True,
                          variable="pr")
 
 # Set the evaluator
@@ -145,8 +141,7 @@ results = evaluator.evaluate(submission_name="DeepESD-v1_IFCA_m1",
                              domain="ALPS_Domain",
                              training_experiment="Emulator_hist_future",
                              evaluation_experiment="Perfect_cross_validation",
-                             variable="pr",
-                             use_orography=True)
+                             variable="pr")
 
 # Generate comparison tables
 table_gen = TableGenerator(config=config,
@@ -246,11 +241,10 @@ Defines table specifications for model comparison:
   "metrics_registry_path": "configs/metrics.json",
   "tables": {
     "esd_perfect_extrapolation": {
-      "description": "ESD Experiment (with orography) - Perfect Extrapolation",
+      "description": "ESD Experiment - Perfect Extrapolation",
       "training_experiment": "ESD_pseudo_reality",
       "evaluation_experiment": "Perfect_extrapolation",
       "variable": "tasmax",
-      "use_orography": true,
       "metrics": [
         {
           "name": "RMSE",
@@ -297,7 +291,6 @@ Defines figure specifications for plotting daily fields:
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
       "target_date": "1985-01-15",
-      "use_orography": true,
       "colorbar_label": "Daily precipitation (mm/day)"
     }
   }
@@ -337,7 +330,6 @@ Defines diagnostic figure specifications for spatial maps of computed metrics:
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
       "metric": "rmse",
-      "use_orography": true,
       "colorbar_label": "RMSE (mm/day)",
       "colormap": "Reds"
     }

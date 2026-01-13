@@ -28,7 +28,6 @@ catalog = SubmissionCatalog(config.catalog_path)
 SUBMISSION_NAME = "DeepESD-v1_IFCA_m1"
 TRAINING_EXPERIMENT = "Emulator_hist_future"
 EVALUATION_EXPERIMENT = "Perfect_cross_validation"
-USE_OROGRAPHY = True
 DOMAINS = ["NZ_Domain", "SA_Domain", "ALPS_Domain"]
 VARIABLE = "tasmax"
 
@@ -42,8 +41,7 @@ for domain in DOMAINS:
                                  domain=domain,
                                  training_experiment=TRAINING_EXPERIMENT,
                                  evaluation_experiment=EVALUATION_EXPERIMENT,
-                                 variable=VARIABLE,
-                                 use_orography=USE_OROGRAPHY)
+                                 variable=VARIABLE)
 
 # Generate table
 table_gen = TableGenerator(config=config,

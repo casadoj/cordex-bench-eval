@@ -21,7 +21,6 @@
       "training_experiment": "ESD_pseudo_reality",
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
-      "use_orography": true,
       "target_date": "1985-01-15",
       "colorbar_label": "Daily precipitation (mm/day)",
       "colorbar": {
@@ -36,7 +35,6 @@
       "training_experiment": "ESD_pseudo_reality",
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
-      "use_orography": true,
       "target_date": "1985-01-15",
       "colorbar_label": "Daily precipitation (mm/day)",
       "colorbar": {
@@ -51,7 +49,6 @@
       "training_experiment": "ESD_pseudo_reality",
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
-      "use_orography": true,
       "target_date": "1985-01-15",
       "colorbar_label": "Daily precipitation (mm/day)",
       "colorbar": {

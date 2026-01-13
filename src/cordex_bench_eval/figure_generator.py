@@ -28,7 +28,7 @@ from .data_loader import GroundTruthDataLoader, SubmissionDataLoader
 
 # Keys that describe the scientific scenario (non-plot settings) in the figure spec
 _SCENARIO_KEYS = {"description", "domain", "training_experiment",
-                  "evaluation_experiment", "variable", "use_orography", "target_date"}
+                  "evaluation_experiment", "variable", "target_date"}
 
 class FigureGenerator:
     """
@@ -93,7 +93,6 @@ class FigureGenerator:
         training_experiment = spec["training_experiment"]
         evaluation_experiment = spec["evaluation_experiment"]
         variable = spec["variable"]
-        use_orography = spec.get("use_orography")
 
         ground_truth = self._load_ground_truth(domain=domain,
                                                training_experiment=training_experiment,
@@ -106,8 +105,7 @@ class FigureGenerator:
                                              training_experiment=training_experiment,
                                              evaluation_experiment=evaluation_experiment,
                                              variable=variable,
-                                             target_date=target_timestamp,
-                                             use_orography=use_orography)
+                                             target_date=target_timestamp)
 
         destination = self._resolve_output_path(figure_name=figure_name,
                                                 output_path=output_path,
@@ -160,9 +158,8 @@ class FigureGenerator:
 
     def _load_predictions(self, submissions: Sequence[str], domain: str,
                           training_experiment: str, evaluation_experiment: str,
-                          variable: str, target_date: np.datetime64,
-                          use_orography: bool | None) -> List[Tuple[str, xr.DataArray]]:
-        """Load the predictions data array"""
+                          variable: str, target_date: np.datetime64) -> List[Tuple[str, xr.DataArray]]:
+        """Load the predictions data array."""
         loaded: List[Tuple[str, xr.DataArray]] = []
         for submission in submissions:
             ds: Optional[xr.Dataset] = None
@@ -171,8 +168,7 @@ class FigureGenerator:
                                                          domain=domain,
                                                          training_experiment=training_experiment,
                                                          evaluation_experiment=evaluation_experiment,
-                                                         variable=variable,
-                                                         use_orography=use_orography)
+                                                         variable=variable)
                 data_array = ds[variable]
                 slice_da = self._slice_day(data_array, target_date).load()
                 loaded.append((submission, slice_da))
