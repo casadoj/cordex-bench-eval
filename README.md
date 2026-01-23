@@ -85,7 +85,7 @@ Based on the training experiment chosen, the following evaluation experiments ar
 | `Imperfect_cross_validation` | historical | imperfect | Same as train |
 | `Perfect_extrapolation` | mid_end_century | perfect | Same as train |
 | `Imperfect_extrapolation` | mid_end_century | imperfect | Same as train |
-| `Perfect_extrapolation_HT` | mid_end_century | perfect | Different GCM |
+| `Perfect_extrapolation_GCM_transferability` | mid_end_century | perfect | Different GCM |
 
 ### Emulator_hist_future
 
@@ -93,12 +93,10 @@ Based on the training experiment chosen, the following evaluation experiments ar
 |----------------------|--------|-----------|-----|
 | `Perfect_cross_validation` | historical | perfect | Same as train |
 | `Imperfect_cross_validation` | historical | imperfect | Same as train |
-| `Perfect_cross_validation_HT` | historical | perfect | Different GCM |
-| `Imperfect_cross_validation_HT` | historical | imperfect | Different GCM |
-| `Perfect_interpolation` | mid_end_century | perfect | Same as train |
-| `Imperfect_interpolation` | mid_end_century | imperfect | Same as train |
-| `Perfect_interpolation_HT` | mid_end_century | perfect | Different GCM |
-| `Imperfect_interpolation_HT` | mid_end_century | imperfect | Different GCM |
+| `Perfect_interpolation` | mid_century | perfect | Same as train |
+| `Imperfect_interpolation` | mid_century | imperfect | Same as train |
+| `Perfect_interpolation_GCM_transferability` | mid_century | perfect | Different GCM |
+| `Imperfect_interpolation_GCM_transferability` | mid_century | imperfect | Different GCM |
 
 ## Quick Start
 
