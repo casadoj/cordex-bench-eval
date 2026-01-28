@@ -10,10 +10,10 @@ from cordex_bench_eval import (
 from cordex_bench_eval.config import load_config_file
 
 # Set the configuration paths
-CONFIG_PATH = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/config.json"
-METRICS_PATH = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/metrics.json"
-FIGURES_CONFIG_PATH = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/figures.json"
-OUTPUT_DIR = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/figs/figs_pdf"
+CONFIG_PATH = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/config.json"
+METRICS_PATH = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/metrics.json"
+FIGURES_CONFIG_PATH = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/figures.json"
+OUTPUT_DIR = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/figs/figs_pdf"
 
 def main():
 

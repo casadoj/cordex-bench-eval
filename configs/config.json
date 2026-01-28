@@ -1,10 +1,10 @@
 {
-  "groundtruth_path": "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/data/target",
-  "diagnostic_path": "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/data/diagnostics",
-  "incoming_path": "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/data/incoming",
-  "staging_path": "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/data/staging",
-  "catalog_path": "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/catalog/catalog.json",
-  "mlbenchmark_path": "/gpfs/projects/meteo/WORK/gonzabad/ml-benchmark",
+  "groundtruth_path": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/target",
+  "diagnostic_path": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/diagnostics",
+  "incoming_path": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/incoming",
+  "staging_path": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/staging",
+  "catalog_path": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/catalog/catalog.json",
+  "mlbenchmark_path": "/lustre/gmeteo/WORK/abadj/ml-benchmark",
   "archive_extensions": [".zip"],
   "overwrite_existing": true
 }

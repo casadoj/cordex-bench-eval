@@ -1,5 +1,5 @@
 {
-  "metrics_registry_path": "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/metrics.json",
+  "metrics_registry_path": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/metrics.json",
   "tables": {
     "pr_emulator_perfect_cross_validation": {
       "description": "PR - (Emulation) Perfect Cross Validation",

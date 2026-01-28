@@ -30,11 +30,11 @@ from cordex_bench_eval.config import load_config_file
 ########################################################################################
 # SET THE CONFIGURATION
 
-CONFIG_PATH = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/config.json"
-METRICS_PATH = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/metrics.json"
-TABLES_CONFIG_PATH = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/tables.json"
-FIGURES_CONFIG_PATH = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/figures.json"
-DIAGNOSTIC_FIGURES_CONFIG_PATH = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/configs/diagnostic_figures.json"
+CONFIG_PATH = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/config.json"
+METRICS_PATH = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/metrics.json"
+TABLES_CONFIG_PATH = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/tables.json"
+FIGURES_CONFIG_PATH = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/figures.json"
+DIAGNOSTIC_FIGURES_CONFIG_PATH = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/diagnostic_figures.json"
 
 config = load_config_file(CONFIG_PATH)
 ########################################################################################
@@ -171,7 +171,7 @@ print(df_single)
 ########################################################################################
 # EXPORT A TABLE TO MULTIPLE FORMATS
 
-OUTPUT_DIR = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval"
+OUTPUT_DIR = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval"
 
 # Export to CSV
 table_gen.export_table(df=df_single,
@@ -189,7 +189,7 @@ print(f"Saved HTML: {OUTPUT_DIR}/{table_name}.html")
 ########################################################################################
 # GENERATE FIGURES OF DAILY MAPS
 
-FIGURES_OUTPUT_DIR = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval"
+FIGURES_OUTPUT_DIR = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval"
 
 figure_gen = FigureGenerator(config=config,
                              catalog=catalog,
@@ -207,7 +207,7 @@ print(f"Saved figure: {figure_path}")
 ########################################################################################
 # GENERATE DIAGNOSTIC SPATIAL MAPS
 
-DIAGNOSTIC_FIGURES_OUTPUT_DIR = "/gpfs/projects/meteo/WORK/gonzabad/cordex-bench-eval/"
+DIAGNOSTIC_FIGURES_OUTPUT_DIR = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/"
 
 # Initialize evaluator (needed to load metrics)
 evaluator = Evaluator(config=config, catalog=catalog, metrics_registry_path=METRICS_PATH,
