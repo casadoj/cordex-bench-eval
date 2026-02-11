@@ -1,9 +1,18 @@
 {
   "entries": [
     {
-      "name": "DeepESD-asym1-orog",
-      "location": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/staging/DeepESD-asym1-orog",
-      "created_at": "2026-01-13T11:10:06.528432+00:00",
+      "name": "FlowMatching-v1",
+      "location": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/staging/FlowMatching-v1",
+      "created_at": "2026-02-11T09:12:35.975640+00:00",
+      "status": "staged",
+      "extra": {
+        "uses_orography": "false"
+      }
+    },
+    {
+      "name": "FlowMatching-v1-orog",
+      "location": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/staging/FlowMatching-v1-orog",
+      "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
         "uses_orography": "true"

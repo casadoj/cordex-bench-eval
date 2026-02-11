@@ -10,7 +10,7 @@ from __future__ import annotations
 import shutil
 import zipfile
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 import xarray as xr
 
@@ -34,20 +34,41 @@ class SubmissionHandler:
         self.config = config
         self.catalog = SubmissionCatalog(config.catalog_path)
 
-    def ingest(self) -> List[CatalogEntry]:
+    def ingest(self, archive_path: Optional[Path] = None) -> List[CatalogEntry]:
         """
-        Process all new submission archives.
-        
-        Discovers archives in the incoming directory, extracts them to staging,
-        and registers them in the catalog.
-        
+        Process submission archives.
+
+        When archive_path is provided, only that archive is processed.
+        When archive_path is None, discovers all archives in the incoming
+        directory, extracts them to staging, and registers them in the catalog.
+
+        Parameters
+        ----------
+        archive_path : Path, optional
+            Path to a single .zip archive to ingest. If None, process all
+            archives in the incoming directory.
+
         Returns
         -------
         List[CatalogEntry]
             List of newly registered submissions.
         """
         ingested: List[CatalogEntry] = []
-        for archive in self._discover_archives():
+        if archive_path is not None:
+            path = Path(archive_path).resolve()
+            if not path.is_file():
+                raise FileNotFoundError(f"Archive not found: {path}")
+            if path.suffix.lower() not in tuple(
+                ext.lower() for ext in self.config.archive_extensions
+            ):
+                raise ValueError(
+                    f"File {path} has unsupported extension. "
+                    f"Expected one of {self.config.archive_extensions}"
+                )
+            archives = [path]
+        else:
+            archives = list(self._discover_archives())
+        for archive in archives:
             dest = self._stage_archive(archive)
             metadata = self._extract_metadata(dest)
             entry = self.catalog.register(archive.stem, dest, extra=metadata)

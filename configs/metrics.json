@@ -2,15 +2,18 @@
   "metrics": {
     "rmse": {
       "type": "rmse",
-      "dim": ["time"]
+      "dim": ["time"],
+      "member_handling": "mean"
     },
     "mean_bias": {
       "type": "bias_index",
-      "index_fn": "evaluation.indices.mean"
+      "index_fn": "evaluation.indices.mean",
+      "member_handling": "mean"
     },
     "cdd_bias": {
       "type": "bias_index",
       "index_fn": "evaluation.indices.cdd",
+      "member_handling": "random",
       "kwargs": {
         "dry_threshold": 1.0
       }
@@ -18,6 +21,7 @@
     "cwd_bias": {
       "type": "bias_index",
       "index_fn": "evaluation.indices.cwd",
+      "member_handling": "random",
       "kwargs": {
         "wet_threshold": 1.0
       }
@@ -25,39 +29,47 @@
     "sdii_ratio": {
       "type": "ratio_index",
       "index_fn": "evaluation.indices.sdii",
+      "member_handling": "random",
       "kwargs": {
         "wet_threshold": 1.0
       }
     },
     "rx1day_bias": {
       "type": "bias_index",
-      "index_fn": "evaluation.indices.rx1day"
+      "index_fn": "evaluation.indices.rx1day",
+      "member_handling": "random"
     },
     "txx_bias": {
       "type": "bias_index",
-      "index_fn": "evaluation.indices.txx"
+      "index_fn": "evaluation.indices.txx",
+      "member_handling": "random"
     },
     "txn_bias": {
       "type": "bias_index",
-      "index_fn": "evaluation.indices.txn"
+      "index_fn": "evaluation.indices.txn",
+      "member_handling": "random"
     },
     "su_bias": {
       "type": "bias_index",
       "index_fn": "evaluation.indices.su",
+      "member_handling": "random",
       "kwargs": {
         "threshold": 300.0
       }
     },
     "psd": {
-      "type": "psd"
+      "type": "psd",
+      "member_handling": "random"
     },
     "lag1_corr_bias": {
       "type": "bias_index",
-      "index_fn": "evaluation.indices.lag1_corr"
+      "index_fn": "evaluation.indices.lag1_corr",
+      "member_handling": "random"
     },
     "interannual_var_bias": {
       "type": "bias_index",
-      "index_fn": "evaluation.indices.interannual_var"
+      "index_fn": "evaluation.indices.interannual_var",
+      "member_handling": "random"
     }
   },
   "defaults": {

@@ -7,6 +7,7 @@ on prediction datasets against ground truth, and saves results as NetCDF files.
 
 from __future__ import annotations
 
+import hashlib
 import importlib
 import json
 from pathlib import Path
@@ -101,7 +102,23 @@ class Evaluator:
                 raise ValueError(f"Unknown metric: {metric_name}")
 
             metric_config = self.metrics_registry["metrics"][metric_name]
-            metric_ds = self._compute_metric(pred_ds=pred_ds, gt_ds=gt_ds, variable=variable,
+            member_handling = metric_config.get("member_handling", "mean")
+            selection_context = "|".join([
+                submission_name,
+                domain,
+                training_experiment,
+                evaluation_experiment,
+                variable,
+                metric_name,
+            ])
+            metric_pred_ds, metric_gt_ds = self._apply_member_handling_to_datasets(
+                pred_ds=pred_ds,
+                gt_ds=gt_ds,
+                member_handling=member_handling,
+                selection_context=selection_context,
+            )
+
+            metric_ds = self._compute_metric(pred_ds=metric_pred_ds, gt_ds=metric_gt_ds, variable=variable,
                                              metric_name=metric_name, metric_config=metric_config,
                                              season=season)
 
@@ -193,6 +210,53 @@ class Evaluator:
         pred_ds, gt_ds = xr.align(pred_ds, gt_ds, join="inner")
 
         return pred_ds, gt_ds
+
+    def _apply_member_handling_to_datasets(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset,
+                                           member_handling: str, selection_context: str) -> tuple[xr.Dataset, xr.Dataset]:
+        """Apply member-dimension handling to prediction/ground-truth datasets."""
+        normalized = self._normalize_member_handling(member_handling)
+        pred_processed = self._reduce_member_dim(pred_ds,
+                                                 strategy=normalized,
+                                                 selection_context=f"{selection_context}|pred")
+        gt_processed = self._reduce_member_dim(gt_ds,
+                                               strategy=normalized,
+                                               selection_context=f"{selection_context}|gt")
+        pred_processed, gt_processed = xr.align(pred_processed, gt_processed, join="inner", exclude=["time"])
+        pred_processed, gt_processed = xr.align(pred_processed, gt_processed, join="inner")
+        return pred_processed, gt_processed
+
+    def _reduce_member_dim(self, ds: xr.Dataset, strategy: str, selection_context: str) -> xr.Dataset:
+        """Reduce/select the member dimension when present."""
+        if "member" not in ds.dims:
+            return ds
+
+        if strategy == "mean":
+            return ds.mean(dim="member")
+
+        if strategy == "random":
+            idx = self._deterministic_member_index(ds.sizes["member"], selection_context)
+            return ds.isel(member=idx, drop=True)
+
+        raise ValueError(f"Unknown member handling strategy: {strategy}")
+
+    def _normalize_member_handling(self, member_handling: str) -> str:
+        """Normalize accepted member handling aliases."""
+        normalized = str(member_handling).strip().lower()
+        if normalized in {"mean", "ensemble_mean"}:
+            return "mean"
+        if normalized in {"random", "random_member"}:
+            return "random"
+        raise ValueError(
+            f"Unsupported member_handling='{member_handling}'. Expected one of "
+            "'mean', 'ensemble_mean', 'random', or 'random_member'."
+        )
+
+    def _deterministic_member_index(self, n_members: int, selection_context: str) -> int:
+        """Compute a deterministic member index in [0, n_members)."""
+        if n_members <= 0:
+            raise ValueError("Member dimension must contain at least one value.")
+        digest = hashlib.sha256(selection_context.encode("utf-8")).hexdigest()
+        return int(digest, 16) % n_members
 
     def _compute_metric(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset,
                         variable: str, metric_name: str, metric_config: dict,

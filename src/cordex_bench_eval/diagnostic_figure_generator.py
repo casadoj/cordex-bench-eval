@@ -147,6 +147,7 @@ class DiagnosticFigureGenerator:
                     continue
                 
                 data_array = ds[data_vars[0]]
+                data_array = self._prepare_spatial_field(data_array)
                 loaded.append((submission, data_array))
 
             except FileNotFoundError as exc:
@@ -233,8 +234,12 @@ class DiagnosticFigureGenerator:
     def _draw_dataarray(self, ax: plt.Axes, data_array: xr.DataArray,
                         cmap: mcolors.Colormap, norm: mcolors.Normalize) -> None:
         """Draw the data array on the axes."""
-        ax.pcolormesh(data_array['lon'].values, data_array['lat'].values,
-                      data_array, cmap=cmap, norm=norm, 
+        lat_dim = self._infer_dim(data_array, "y")
+        lon_dim = self._infer_dim(data_array, "x")
+        da_2d = data_array.transpose(lat_dim, lon_dim)
+        lon_vals, lat_vals = self._resolve_plot_coordinates(da_2d, lat_dim, lon_dim)
+        ax.pcolormesh(lon_vals, lat_vals,
+                      da_2d.values, cmap=cmap, norm=norm,
                       transform=ccrs.PlateCarree())
         
         ax.coastlines(resolution='50m', color='black', linewidth=0.5)
@@ -242,6 +247,21 @@ class DiagnosticFigureGenerator:
         
         ax.set_xticks([])
         ax.set_yticks([])
+
+    def _resolve_plot_coordinates(self, data_array: xr.DataArray,
+                                  lat_dim: str, lon_dim: str) -> Tuple[np.ndarray, np.ndarray]:
+        """Resolve coordinates for map plotting.
+
+        Prefer geographic lon/lat coordinates (including 2D curvilinear grids).
+        Fall back to the dimension coordinates when lon/lat are unavailable.
+        """
+        lon_name = next((name for name in ("lon", "longitude") if name in data_array.coords), None)
+        lat_name = next((name for name in ("lat", "latitude") if name in data_array.coords), None)
+
+        if lon_name is not None and lat_name is not None:
+            return data_array[lon_name].values, data_array[lat_name].values
+
+        return data_array[lon_dim].values, data_array[lat_dim].values
 
     def _build_colormap(self, diagnostics: Sequence[Tuple[str, xr.DataArray]],
                         plot_settings: Dict[str, Any]) -> Tuple[mcolors.Colormap, mcolors.Normalize, Optional[List[float]]]:
@@ -294,8 +314,17 @@ class DiagnosticFigureGenerator:
         float
             Spatial mean value, computed over all array values (handles NaNs).
         """
-        arr = data_array.squeeze()
+        arr = self._prepare_spatial_field(data_array)
         return float(np.nanmean(arr.values))
+
+    def _prepare_spatial_field(self, data_array: xr.DataArray) -> xr.DataArray:
+        """Reduce non-spatial dimensions to obtain a 2D spatial field."""
+        lat_dim = self._infer_dim(data_array, "y")
+        lon_dim = self._infer_dim(data_array, "x")
+        extra_dims = [dim for dim in data_array.dims if dim not in {lat_dim, lon_dim}]
+        if extra_dims:
+            data_array = data_array.mean(dim=extra_dims, skipna=True)
+        return data_array.transpose(lat_dim, lon_dim).squeeze()
 
     def _resolve_submission_names(self, submission_names: Optional[Sequence[str]]) -> List[str]:
         """Resolve submission names from the catalog."""

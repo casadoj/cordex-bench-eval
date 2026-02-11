@@ -9,6 +9,7 @@ configuration file.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 from datetime import datetime
@@ -152,7 +153,9 @@ class FigureGenerator:
             data_array = ds[variable]
         except KeyError as exc:
             raise KeyError(f"Variable '{variable}' not found in ground truth dataset.") from exc
-        slice_da = self._slice_day(data_array, target_date).load()
+        slice_da = self._slice_day(data_array, target_date)
+        slice_da = self._ensure_spatial_2d(slice_da)
+        slice_da = slice_da.load()
         ds.close()
         return slice_da
 
@@ -170,7 +173,18 @@ class FigureGenerator:
                                                          evaluation_experiment=evaluation_experiment,
                                                          variable=variable)
                 data_array = ds[variable]
-                slice_da = self._slice_day(data_array, target_date).load()
+                slice_da = self._slice_day(data_array, target_date)
+                selection_context = "|".join([
+                    submission,
+                    domain,
+                    training_experiment,
+                    evaluation_experiment,
+                    variable,
+                    np.datetime_as_string(target_date, unit="D"),
+                ])
+                slice_da = self._select_deterministic_member_for_plot(slice_da, selection_context)
+                slice_da = self._ensure_spatial_2d(slice_da)
+                slice_da = slice_da.load()
                 loaded.append((submission, slice_da))
 
             except FileNotFoundError as exc:
@@ -269,8 +283,12 @@ class FigureGenerator:
     def _draw_dataarray(self, ax: plt.Axes, data_array: xr.DataArray,
                         cmap: mcolors.Colormap, norm: mcolors.Normalize) -> None:
         """Draw the data array on the axes"""
-        ax.pcolormesh(data_array['lon'].values, data_array['lat'].values,
-                      data_array, cmap=cmap, norm=norm, 
+        lat_dim = self._infer_dim(data_array, "y")
+        lon_dim = self._infer_dim(data_array, "x")
+        da_2d = data_array.transpose(lat_dim, lon_dim)
+        lon_vals, lat_vals = self._resolve_plot_coordinates(da_2d, lat_dim, lon_dim)
+        ax.pcolormesh(lon_vals, lat_vals,
+                      da_2d.values, cmap=cmap, norm=norm,
                       transform=ccrs.PlateCarree())
         
         ax.coastlines(resolution='50m', color='black', linewidth=0.5)
@@ -278,6 +296,21 @@ class FigureGenerator:
         
         ax.set_xticks([])
         ax.set_yticks([])
+
+    def _resolve_plot_coordinates(self, data_array: xr.DataArray,
+                                  lat_dim: str, lon_dim: str) -> Tuple[np.ndarray, np.ndarray]:
+        """Resolve coordinates for map plotting.
+
+        Prefer geographic lon/lat coordinates (including 2D curvilinear grids).
+        Fall back to the dimension coordinates when lon/lat are unavailable.
+        """
+        lon_name = next((name for name in ("lon", "longitude") if name in data_array.coords), None)
+        lat_name = next((name for name in ("lat", "latitude") if name in data_array.coords), None)
+
+        if lon_name is not None and lat_name is not None:
+            return data_array[lon_name].values, data_array[lat_name].values
+
+        return data_array[lon_dim].values, data_array[lat_dim].values
 
     def _build_colormap(self, ground_truth: xr.DataArray,
                         predictions: Sequence[Tuple[str, xr.DataArray]],
@@ -345,6 +378,34 @@ class FigureGenerator:
             end = np.datetime_as_string(times[-1], unit="D")
             raise KeyError(f"Date {target_date} not present in dataset (available range: {start} - {end}).") from exc
         return sliced.squeeze()
+
+    def _select_deterministic_member_for_plot(self, data_array: xr.DataArray,
+                                              selection_context: str) -> xr.DataArray:
+        """Select one deterministic member if a member dimension is present."""
+        if "member" not in data_array.dims:
+            return data_array
+        n_members = int(data_array.sizes["member"])
+        idx = self._deterministic_member_index(n_members, selection_context)
+        return data_array.isel(member=idx, drop=True)
+
+    def _deterministic_member_index(self, n_members: int, selection_context: str) -> int:
+        """Compute a deterministic member index in [0, n_members)."""
+        if n_members <= 0:
+            raise ValueError("Member dimension must contain at least one value.")
+        digest = hashlib.sha256(selection_context.encode("utf-8")).hexdigest()
+        return int(digest, 16) % n_members
+
+    def _ensure_spatial_2d(self, data_array: xr.DataArray) -> xr.DataArray:
+        """Ensure data array is strictly 2D over spatial dimensions."""
+        lat_dim = self._infer_dim(data_array, "y")
+        lon_dim = self._infer_dim(data_array, "x")
+        extra_dims = [dim for dim in data_array.dims if dim not in {lat_dim, lon_dim}]
+        if extra_dims:
+            raise ValueError(
+                "Expected a 2D spatial field after time/member selection, "
+                f"but found extra dimensions: {extra_dims}."
+            )
+        return data_array.transpose(lat_dim, lon_dim).squeeze()
 
     def _infer_dim(self, data_array: xr.DataArray, axis: str) -> str:
         """Infer the dimension name for the given axis"""
