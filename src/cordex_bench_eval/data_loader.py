@@ -13,6 +13,13 @@ from typing import Any, List
 
 import xarray as xr
 from .catalog import SubmissionCatalog
+from .mappings import (
+    EVAL_SETTINGS as _EVAL_SETTINGS,
+    GCM_EVAL as _GCM_EVAL,
+    GCM_TRAIN as _GCM_TRAIN,
+    PERIOD_DATES as _PERIOD_DATES,
+    TRAIN_PERIODS as _TRAIN_PERIODS,
+)
 
 class SubmissionDataLoader:
     """
@@ -488,45 +495,3 @@ def _normalize_training_experiment(experiment: str) -> str:
         return f"{parts[0]}_{parts[1].lower()}"
     return base.lower()
 
-
-##################
-# MAPPING TABLES #
-##################
-
-# Training periods by experiment type
-_TRAIN_PERIODS = {"Emulator_hist_future": "1961-1980_2080-2099",
-                  "ESD_pseudo_reality": "1961-1980"}
-
-# Date tags for test periods
-_PERIOD_DATES = {"historical": "1981-2000",
-                 "mid_century": "2041-2060",
-                 "end_century": "2080-2099"}
-
-# GCM models used for training by domain
-_GCM_TRAIN = {"NZ": "ACCESS-CM2",
-              "ALPS": "CNRM-CM5",
-              "SA": "ACCESS-CM2"}
-
-# GCM models used for evaluation (hard-transferability)
-_GCM_EVAL = {"NZ": "EC-Earth3",
-             "ALPS": "MPI-ESM-LR",
-             "SA": "NorESM2-MM"}
-
-# Evaluation settings: training_experiment -> evaluation_experiment -> (period, condition, same_gcm_as_train)
-_EVAL_SETTINGS = {
-    "ESD_pseudo_reality": {
-        "Perfect_cross_validation": ("historical", "perfect", True),
-        "Imperfect_cross_validation": ("historical", "imperfect", True),
-        "Perfect_extrapolation": ("mid_end_century", "perfect", True),
-        "Imperfect_extrapolation": ("mid_end_century", "imperfect", True),
-        "Perfect_extrapolation_GCM_transferability": ("mid_end_century", "perfect", False),
-    },
-    "Emulator_hist_future": {
-        "Perfect_cross_validation": ("historical", "perfect", True),
-        "Imperfect_cross_validation": ("historical", "imperfect", True),
-        "Perfect_interpolation": ("mid_century", "perfect", True),
-        "Imperfect_interpolation": ("mid_century", "imperfect", True),
-        "Perfect_interpolation_GCM_transferability": ("mid_century", "perfect", False),
-        "Imperfect_interpolation_GCM_transferability": ("mid_century", "imperfect", False),
-    },
-}

@@ -17,6 +17,33 @@
       "extra": {
         "uses_orography": "true"
       }
+    },
+    {
+      "name": "UiBCorrDiff-orog",
+      "location": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/staging/UiBCorrDiff-orog",
+      "created_at": "2026-02-11T09:12:35.975640+00:00",
+      "status": "staged",
+      "extra": {
+        "uses_orography": "true"
+      }
+    },
+    {
+      "name": "ANN-orog",
+      "location": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/staging/ANN-orog",
+      "created_at": "2026-02-11T09:12:35.975640+00:00",
+      "status": "staged",
+      "extra": {
+        "uses_orography": "true"
+      }
+    },
+    {
+      "name": "ANN",
+      "location": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/staging/ANN",
+      "created_at": "2026-02-11T09:12:35.975640+00:00",
+      "status": "staged",
+      "extra": {
+        "uses_orography": "false"
+      }
     }
   ]
 }

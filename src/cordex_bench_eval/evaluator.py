@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
+from itertools import product
 from pathlib import Path
 from typing import Any, Callable, List
 
@@ -56,7 +57,8 @@ class Evaluator:
 
     def evaluate(self, submission_name: str, domain: str, training_experiment: str,
                  evaluation_experiment: str, variable: str, metrics: List[str] | None = None,
-                 season: str | None = None, **open_kwargs: Any) -> dict[str, xr.Dataset]:
+                 season: str | None = None, recompute_existing: bool = False,
+                 **open_kwargs: Any) -> dict[str, xr.Dataset]:
         """
         Compute metrics for a prediction and save results.
         
@@ -76,6 +78,10 @@ class Evaluator:
             Metric names to compute. If None, uses defaults from registry.
         season : str, optional
             Season filter ("winter", "summer", "spring", "autumn").
+        recompute_existing : bool, optional
+            If True, recompute and overwrite metric files even when they already
+            exist. If False (default), existing metric files are loaded and
+            reused.
         **open_kwargs
             Additional arguments passed to xarray.open_dataset().
         
@@ -86,20 +92,52 @@ class Evaluator:
         """
         if metrics is None:
             metrics = self.metrics_registry.get("defaults", {}).get(variable, [])
-
-        # Load and align datasets
-        pred_ds, gt_ds = self._load_and_align_datasets(submission_name=submission_name,
-                                                       domain=domain,
-                                                       training_experiment=training_experiment,
-                                                       evaluation_experiment=evaluation_experiment,
-                                                       variable=variable,
-                                                       **open_kwargs)
+        total_metrics = len(metrics)
+        context_label = (
+            f"{submission_name}|{domain}|{training_experiment}|{evaluation_experiment}|{variable}"
+        )
+        print(
+            f"[Evaluator] Start context {context_label} "
+            f"(metrics={total_metrics}, season={season})"
+        )
+        pred_ds: xr.Dataset | None = None
+        gt_ds: xr.Dataset | None = None
 
         # Compute each metric
         results = {}
-        for metric_name in metrics:
+        for metric_index, metric_name in enumerate(metrics, start=1):
             if metric_name not in self.metrics_registry.get("metrics", {}):
                 raise ValueError(f"Unknown metric: {metric_name}")
+
+            metric_path = self._metric_path(submission_name=submission_name,
+                                            domain=domain,
+                                            training_experiment=training_experiment,
+                                            evaluation_experiment=evaluation_experiment,
+                                            variable=variable,
+                                            metric_name=metric_name)
+            if metric_path.exists() and not recompute_existing:
+                with xr.open_dataset(metric_path, **open_kwargs) as cached_ds:
+                    results[metric_name] = cached_ds.load()
+                print(
+                    f"[Evaluator] [{context_label}] "
+                    f"Metric {metric_index}/{total_metrics}: {metric_name} "
+                    f"(loaded existing: {metric_path})"
+                )
+                continue
+
+            print(
+                f"[Evaluator] [{context_label}] "
+                f"Metric {metric_index}/{total_metrics}: {metric_name} (start)"
+            )
+            if pred_ds is None or gt_ds is None:
+                print(f"[Evaluator] Loading datasets for {context_label}")
+                pred_ds, gt_ds = self._load_and_align_datasets(submission_name=submission_name,
+                                                               domain=domain,
+                                                               training_experiment=training_experiment,
+                                                               evaluation_experiment=evaluation_experiment,
+                                                               variable=variable,
+                                                               **open_kwargs)
+                print(f"[Evaluator] Datasets loaded and aligned for {context_label}")
 
             metric_config = self.metrics_registry["metrics"][metric_name]
             member_handling = metric_config.get("member_handling", "mean")
@@ -123,17 +161,108 @@ class Evaluator:
                                              season=season)
 
             # Save metric to NetCDF
-            metric_path = self._metric_path(submission_name=submission_name,
-                                            domain=domain,
-                                            training_experiment=training_experiment,
-                                            evaluation_experiment=evaluation_experiment,
-                                            variable=variable,
-                                            metric_name=metric_name)
             metric_path.parent.mkdir(parents=True, exist_ok=True)
             metric_ds.to_netcdf(metric_path)
+            print(
+                f"[Evaluator] [{context_label}] "
+                f"Metric {metric_index}/{total_metrics}: {metric_name} (saved: {metric_path})"
+            )
 
             results[metric_name] = metric_ds
 
+        print(f"[Evaluator] Completed context {context_label}")
+        return results
+
+    def evaluate_multiple(self, submission_names: List[str], domain: str | List[str],
+                          training_experiment: str | List[str],
+                          evaluation_experiment: str | List[str],
+                          variable: str, metrics: List[str] | None = None,
+                          season: str | None = None, recompute_existing: bool = False,
+                          **open_kwargs: Any) -> dict[str, dict[str, xr.Dataset]]:
+        """
+        Compute metrics for multiple submissions and save results.
+
+        Parameters
+        ----------
+        submission_names : list of str
+            Names of submissions (catalog entries).
+        domain : str or sequence of str
+            Domain name(s) (e.g., "ALPS_Domain").
+        training_experiment : str or sequence of str
+            Training experiment(s) (e.g., "Emulator_hist_future", "ESD_pseudo_reality").
+        evaluation_experiment : str or sequence of str
+            Evaluation experiment(s) (e.g., "Perfect_cross_validation").
+        variable : str
+            Variable name (e.g., "pr", "tasmax").
+        metrics : list of str, optional
+            Metric names to compute. If None, uses defaults from registry.
+        season : str, optional
+            Season filter ("winter", "summer", "spring", "autumn").
+        recompute_existing : bool, optional
+            If True, recompute and overwrite metric files even when they already
+            exist. If False (default), existing metric files are loaded and
+            reused.
+        **open_kwargs
+            Additional arguments passed to xarray.open_dataset().
+
+        Returns
+        -------
+        dict[str, dict[str, xr.Dataset]]
+            Dictionary mapping:
+            - submission names to metric result dictionaries when single values are provided
+            - composite context keys
+              "{submission}|{domain}|{training_experiment}|{evaluation_experiment}|{variable}"
+              to metric result dictionaries when any multi-value input is provided
+        """
+        def _as_list(value: str | List[str]) -> List[str]:
+            if isinstance(value, str):
+                return [value]
+            return list(value)
+
+        domains = _as_list(domain)
+        training_experiments = _as_list(training_experiment)
+        evaluation_experiments = _as_list(evaluation_experiment)
+
+        multi_context = any([
+            len(domains) > 1,
+            len(training_experiments) > 1,
+            len(evaluation_experiments) > 1,
+        ])
+        total_contexts = (
+            len(submission_names)
+            * len(domains)
+            * len(training_experiments)
+            * len(evaluation_experiments)
+        )
+        print(
+            f"[Evaluator] Starting evaluation: contexts={total_contexts}, "
+            f"variable={variable}, season={season}"
+        )
+
+        results: dict[str, dict[str, xr.Dataset]] = {}
+        for context_index, (submission_name, domain_name, training_name, evaluation_name) in enumerate(
+            product(submission_names, domains, training_experiments, evaluation_experiments), start=1
+        ):
+            print(
+                f"[Evaluator] Context {context_index}/{total_contexts}: "
+                f"{submission_name}|{domain_name}|{training_name}|{evaluation_name}|{variable} (start)"
+            )
+            if multi_context:
+                key = "|".join([submission_name, domain_name, training_name, evaluation_name, variable])
+            else:
+                key = submission_name
+
+            results[key] = self.evaluate(submission_name=submission_name,
+                                         domain=domain_name,
+                                         training_experiment=training_name,
+                                         evaluation_experiment=evaluation_name,
+                                         variable=variable,
+                                         metrics=metrics,
+                                         season=season,
+                                         recompute_existing=recompute_existing,
+                                         **open_kwargs)
+            print(f"[Evaluator] Context {context_index}/{total_contexts}: {key} (done)")
+        print("[Evaluator] Evaluation finished.")
         return results
 
     def available_metric_files(self, submission_name: str, domain: str, training_experiment: str,

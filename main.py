@@ -110,81 +110,101 @@ print(f"Ground truth (test): {gt_test}")
 ########################################################################################
 
 ########################################################################################
-# # RUN EVALUATION
+# RUN EVALUATION
 
-# # Set the evaluator
-# evaluator = Evaluator(config=config, catalog=catalog, metrics_registry_path=METRICS_PATH,
-#                       ml_benchmark_path=config.mlbenchmark_path)
+# Evaluation settings
+SUBMISSION_NAMES = ["FlowMatching-v1-orog", "FlowMatching-v1", "UiBCorrDiff-orog", "ANN", "ANN-orog"]
+TRAINING_EXPERIMENTS = ["Emulator_hist_future"]
+EVALUATION_EXPERIMENTS = ["Perfect_cross_validation"]
+DOMAINS = ["ALPS_Domain", "NZ_Domain", "SA_Domain"]
+VARIABLE = "pr"
 
-# # Compute default metrics for the variable (defined in metrics.json)
-# results = evaluator.evaluate(submission_name=SUBMISSION_NAME,
-#                              domain=DOMAIN,
-#                              training_experiment=TRAINING_EXPERIMENT,
-#                              evaluation_experiment=EVALUATION_EXPERIMENT,
-#                              variable=VARIABLE)
+# Set the evaluator
+evaluator = Evaluator(config=config, catalog=catalog, metrics_registry_path=METRICS_PATH,
+                      ml_benchmark_path=config.mlbenchmark_path)
 
-# print(f"Computed metrics: {list(results.keys())}")
+results_by_submission = evaluator.evaluate_multiple(submission_names=SUBMISSION_NAMES,
+                                                    domain=DOMAINS,
+                                                    training_experiment=TRAINING_EXPERIMENTS,
+                                                    evaluation_experiment=EVALUATION_EXPERIMENTS,
+                                                    variable=VARIABLE,
+                                                    recompute_existing=False)
 
-# # List saved metric files
-# metric_files = evaluator.available_metric_files(submission_name=SUBMISSION_NAME,
-#                                                 domain=DOMAIN,
-#                                                 training_experiment=TRAINING_EXPERIMENT,
-#                                                 evaluation_experiment=EVALUATION_EXPERIMENT,
-#                                                 variable=VARIABLE)
-# print(f"Saved metric files for {SUBMISSION_NAME}: {metric_files}")
+computed_metrics = {name: list(results.keys()) for name, results in results_by_submission.items()}
+print(f"Computed metrics by submission: {computed_metrics}")
 
-# # Load a specific metric
-# metric_to_load = "sdii_ratio"
-# metric_ds = evaluator.load_metric(submission_name=SUBMISSION_NAME,
-#                                   domain=DOMAIN,
-#                                   training_experiment=TRAINING_EXPERIMENT,
-#                                   evaluation_experiment=EVALUATION_EXPERIMENT,
-#                                   variable=VARIABLE,
-#                                   metric_name=metric_to_load)
-# print(f"{metric_to_load} result: {metric_ds}")
+# List saved metric files
+metric_files_by_submission = {
+    f"{name}|{domain_name}|{training_name}|{evaluation_name}|{VARIABLE}": evaluator.available_metric_files(
+        submission_name=name,
+        domain=domain_name,
+        training_experiment=training_name,
+        evaluation_experiment=evaluation_name,
+        variable=VARIABLE,
+    )
+    for name in SUBMISSION_NAMES
+    for domain_name in DOMAINS
+    for training_name in TRAINING_EXPERIMENTS
+    for evaluation_name in EVALUATION_EXPERIMENTS
+}
+print(f"Saved metric files by submission: {metric_files_by_submission}")
+
+# Load a specific metric
+metric_submission = SUBMISSION_NAMES[0]
+metric_domain = DOMAINS[0]
+metric_training = TRAINING_EXPERIMENTS[0]
+metric_evaluation = EVALUATION_EXPERIMENTS[0]
+metric_to_load = "sdii_ratio"
+metric_ds = evaluator.load_metric(submission_name=metric_submission,
+                                  domain=metric_domain,
+                                  training_experiment=metric_training,
+                                  evaluation_experiment=metric_evaluation,
+                                  variable=VARIABLE,
+                                  metric_name=metric_to_load)
+print(f"{metric_to_load} result for {metric_submission} ({metric_domain}, {VARIABLE}): {metric_ds}")
 ########################################################################################
 
 ########################################################################################
-# # GENERATE COMPARISON TABLES
+# GENERATE COMPARISON TABLES
 
-# # Initialize table generator
-# table_gen = TableGenerator(config=config,
-#                            catalog=catalog,
-#                            table_config_path=TABLES_CONFIG_PATH)
+# Initialize table generator
+table_gen = TableGenerator(config=config,
+                           catalog=catalog,
+                           table_config_path=TABLES_CONFIG_PATH)
 
-# # Get all available submissions
-# all_submissions = [entry.name for entry in catalog.all_entries()]
+# Get all available submissions
+all_submissions = [entry.name for entry in catalog.all_entries()]
 
-# # Tables defined in config/tables.json
-# table_name = "pr_emulator_perfect_cross_validation"
+# Tables defined in config/tables.json
+table_name = "pr_emulator_perfect_cross_validation"
 
-# df_single = table_gen.generate_table(table_name=table_name,
-#                                      submission_names=all_submissions,
-#                                      domains=["ALPS_Domain"], # More domains can be added here
-#                                      include_average=False)
+df_single = table_gen.generate_table(table_name=table_name,
+                                     submission_names=all_submissions,
+                                     domains=["ALPS_Domain", "NZ_Domain", "SA_Domain"], # More domains can be added here
+                                     include_average=True)
 
-# print(f"Table: {table_name}")
-# print(f"Shape: {df_single.shape}")
-# print("Table Preview:")
-# print(df_single)
+print(f"Table: {table_name}")
+print(f"Shape: {df_single.shape}")
+print("Table Preview:")
+print(df_single)
 ########################################################################################
 
 ########################################################################################
-# # EXPORT A TABLE TO MULTIPLE FORMATS
+# EXPORT A TABLE TO MULTIPLE FORMATS
 
-# OUTPUT_DIR = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval"
+OUTPUT_DIR = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval"
 
-# # Export to CSV
-# table_gen.export_table(df=df_single,
-#                        output_path=f"{OUTPUT_DIR}/{table_name}.csv",
-#                        format="csv")
-# print(f"Saved CSV: {OUTPUT_DIR}/{table_name}.csv")
+# Export to CSV
+table_gen.export_table(df=df_single,
+                       output_path=f"{OUTPUT_DIR}/{table_name}.csv",
+                       format="csv")
+print(f"Saved CSV: {OUTPUT_DIR}/{table_name}.csv")
 
-# # Export to HTML
-# table_gen.export_table(df=df_single,
-#                        output_path=f"{OUTPUT_DIR}/{table_name}.html",
-#                        format="html")
-# print(f"Saved HTML: {OUTPUT_DIR}/{table_name}.html")
+# Export to HTML
+table_gen.export_table(df=df_single,
+                       output_path=f"{OUTPUT_DIR}/{table_name}.html",
+                       format="html")
+print(f"Saved HTML: {OUTPUT_DIR}/{table_name}.html")
 ########################################################################################
 
 ########################################################################################
@@ -200,7 +220,7 @@ figure_gen = FigureGenerator(config=config,
 all_submissions = [entry.name for entry in catalog.all_entries()]
 
 # Figures defined in config/figures.json
-figure_name = "nz_pr_daily_snapshot"
+figure_name = "sa_pr_daily_snapshot"
 figure_path = figure_gen.generate_figure(figure_name=figure_name,
                                          submission_names=all_submissions,
                                          output_dir=FIGURES_OUTPUT_DIR)
@@ -209,24 +229,27 @@ print(f"Saved figure: {figure_path}")
 ########################################################################################
 
 ########################################################################################
-# # GENERATE DIAGNOSTIC SPATIAL MAPS
+# GENERATE DIAGNOSTIC SPATIAL MAPS
 
-# DIAGNOSTIC_FIGURES_OUTPUT_DIR = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/"
+DIAGNOSTIC_FIGURES_OUTPUT_DIR = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/"
 
-# # Initialize evaluator (needed to load metrics)
-# evaluator = Evaluator(config=config, catalog=catalog, metrics_registry_path=METRICS_PATH,
-#                       ml_benchmark_path=config.mlbenchmark_path)
+# Initialize evaluator (needed to load metrics)
+evaluator = Evaluator(config=config, catalog=catalog, metrics_registry_path=METRICS_PATH,
+                      ml_benchmark_path=config.mlbenchmark_path)
 
-# diagnostic_fig_gen = DiagnosticFigureGenerator(config=config,
-#                                                catalog=catalog,
-#                                                evaluator=evaluator,
-#                                                figure_config_path=DIAGNOSTIC_FIGURES_CONFIG_PATH)
+diagnostic_fig_gen = DiagnosticFigureGenerator(config=config,
+                                               catalog=catalog,
+                                               evaluator=evaluator,
+                                               figure_config_path=DIAGNOSTIC_FIGURES_CONFIG_PATH)
 
-# # Diagnostic figures defined in config/diagnostic_figures.json
-# diagnostic_figure_name = "alps_pr_rmse_map"
-# diagnostic_path = diagnostic_fig_gen.generate_figure(figure_name=diagnostic_figure_name,
-#                                                      submission_names=all_submissions,
-#                                                      output_dir=DIAGNOSTIC_FIGURES_OUTPUT_DIR)
+# Get all available submissions
+all_submissions = [entry.name for entry in catalog.all_entries()]
 
-# print(f"Saved diagnostic figure: {diagnostic_path}")
+# Diagnostic figures defined in config/diagnostic_figures.json
+diagnostic_figure_name = "alps_pr_rmse_map"
+diagnostic_path = diagnostic_fig_gen.generate_figure(figure_name=diagnostic_figure_name,
+                                                     submission_names=all_submissions,
+                                                     output_dir=DIAGNOSTIC_FIGURES_OUTPUT_DIR)
+
+print(f"Saved diagnostic figure: {diagnostic_path}")
 ########################################################################################

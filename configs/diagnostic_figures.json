@@ -48,7 +48,7 @@
     "nz_pr_rmse_map": {
       "description": "RMSE spatial map for precipitation in New Zealand domain.",
       "domain": "NZ_Domain",
-      "training_experiment": "ESD_pseudo_reality",
+      "training_experiment": "Emulator_hist_future",
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
       "metric": "rmse",
