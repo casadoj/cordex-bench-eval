@@ -21,7 +21,7 @@
       "training_experiment": "ESD_pseudo_reality",
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
-      "target_date": "1985-01-15",
+      "target_date": "1995-01-15",
       "colorbar_label": "Daily precipitation (mm/day)",
       "colorbar": {
           "levels": 20,
@@ -35,7 +35,7 @@
       "training_experiment": "ESD_pseudo_reality",
       "evaluation_experiment": "Perfect_cross_validation",
       "variable": "pr",
-      "target_date": "1985-01-15",
+      "target_date": "1999-10-15",
       "colorbar_label": "Daily precipitation (mm/day)",
       "colorbar": {
           "levels": 20,

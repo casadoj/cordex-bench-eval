@@ -103,6 +103,7 @@ Based on the training experiment chosen, the following evaluation experiments ar
 ```python
 from cordex_bench_eval import (
     SubmissionCatalog,
+    SubmissionValidator,
     SubmissionDataLoader,
     GroundTruthDataLoader,
     Evaluator,
@@ -179,6 +180,48 @@ print(f"Ingested {len(ingested)} submissions")
 This extracts archives to `staging/` and registers them in `catalog.json`.
 
 ### 2. Run Complete Workflow (Evaluation + Table/Figures Generation)
+
+Before running metrics and figures, you can validate staged submissions:
+
+```python
+from cordex_bench_eval import SubmissionCatalog, SubmissionValidator
+from cordex_bench_eval.config import load_config_file
+
+config = load_config_file("configs/config.json")
+catalog = SubmissionCatalog(config.catalog_path)
+validator = SubmissionValidator(config=config, catalog=catalog)
+
+# Validate all staged submissions
+reports = validator.validate_all_staged()
+
+for submission_name, report in reports.items():
+    status = "VALID" if report.is_valid else "INVALID"
+    print(
+        f"{submission_name}: {status} "
+        f"(checked_files={report.checked_files}, missing_files={report.missing_files}, "
+        f"errors={report.error_count}, warnings={report.warning_count})"
+    )
+```
+
+The validator checks:
+- Submission root exists and is a directory
+- Presence of required files for all expected combinations:
+  domains, training experiments, evaluation experiments, mapped periods/conditions, and expected GCM
+- Required path layout:
+  `<submission>/<domain>/<training_experiment>/<period>/<condition>/`
+- Required filename convention:
+  `Predictions_pr_tasmax_<GCM>_<date_tag>.nc`
+- NetCDF readability (file can be opened)
+- Lightweight corruption probe:
+  tiny eager read on required variables (`pr`, `tasmax`) to catch likely truncated/corrupted content
+  without full-data reads
+- Required variable presence (`pr`, `tasmax`)
+- Required dimensions/structure (`time` non-empty and inferable spatial dims)
+- Coordinate quality warning when explicit `lat/lon` (or `latitude/longitude`) coordinates are missing
+- Domain-specific coordinate constraint: `ALPS_Domain` requires explicit `x/y` coordinates
+- Explicit missing-file reporting in CLI output (`main.py` validation section prints each missing path)
+
+### 3. Run Complete Workflow (Evaluation + Table/Figures Generation)
 
 The simplest way to use the package is to run `main.py`, which demonstrates the complete workflow:
 
@@ -363,6 +406,7 @@ cordex-bench-eval/
 │   ├── config.py                     # Configuration loading
 │   ├── catalog.py                    # Submission catalog
 │   ├── submission_handler.py         # Archive ingestion
+│   ├── submission_validator.py       # Staged submission preflight checks
 │   ├── data_loader.py                # Data loading utilities
 │   ├── evaluator.py                  # Metrics computation
 │   ├── table_generator.py            # Table generation

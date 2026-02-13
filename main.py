@@ -16,6 +16,7 @@ Workflow steps:
 
 from cordex_bench_eval import (
     SubmissionHandler,
+    SubmissionValidator,
     SubmissionCatalog,
     SubmissionDataLoader,
     GroundTruthDataLoader,
@@ -37,6 +38,30 @@ FIGURES_CONFIG_PATH = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/figur
 DIAGNOSTIC_FIGURES_CONFIG_PATH = "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/diagnostic_figures.json"
 
 config = load_config_file(CONFIG_PATH)
+catalog = SubmissionCatalog(config.catalog_path)
+########################################################################################
+
+########################################################################################
+# VALIDATE STAGED SUBMISSIONS
+
+# Validate one submission by name:
+report = SubmissionValidator(config=config, catalog=catalog).validate_submission("ANN-orog")
+
+print("Submission validation results:")
+status = "VALID" if report.is_valid else "INVALID"
+print(f"{report.submission_name}: {status} "
+      f"(checked_files={report.checked_files}, missing_files={report.missing_files}, "
+      f"errors={report.error_count}, warnings={report.warning_count})")
+
+if report.missing_file_paths:
+    print("Missing files:")
+    for missing_path in report.missing_file_paths:
+        print(f"  - {missing_path}")
+
+for issue in report.issues:
+    if issue.code in {"MISSING_REQUIRED_FILE", "EXPECTED_FILE_NOT_A_FILE"}:
+        continue
+    print(f"  - [{issue.severity}] {issue.code}: {issue.message}")
 ########################################################################################
 
 ########################################################################################
@@ -51,8 +76,6 @@ config = load_config_file(CONFIG_PATH)
 
 ########################################################################################
 # BROWSE THE SUBMISSION CATALOG
-
-catalog = SubmissionCatalog(config.catalog_path)
 
 # List all available submissions
 print("Available Submissions:")
@@ -217,10 +240,14 @@ figure_gen = FigureGenerator(config=config,
                              figure_config_path=FIGURES_CONFIG_PATH)
 
 # Get all available submissions
-all_submissions = [entry.name for entry in catalog.all_entries()]
+# all_submissions = [entry.name for entry in catalog.all_entries()]
+all_submissions = ["FlowMatching-v1", 
+                   "FlowMatching-v1-orog", "UiBCorrDiff-orog",
+                   "ANN", "ANN-orog",
+                   "Prithvi-UNet", "Prithvi-UNet-orog"]
 
 # Figures defined in config/figures.json
-figure_name = "sa_pr_daily_snapshot"
+figure_name = 'sa_pr_daily_snapshot'
 figure_path = figure_gen.generate_figure(figure_name=figure_name,
                                          submission_names=all_submissions,
                                          output_dir=FIGURES_OUTPUT_DIR)

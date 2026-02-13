@@ -10,6 +10,10 @@ SubmissionHandler
     Ingests submission archives (.zip) from an incoming directory, extracts
     them to staging, and registers them in the catalog.
 
+SubmissionValidator
+    Validates staged submissions for required files, naming, and NetCDF
+    structure needed by metrics and figures.
+
 SubmissionCatalog
     JSON-backed catalog that tracks all registered submissions with metadata.
 
@@ -39,6 +43,7 @@ from .diagnostic_figure_generator import DiagnosticFigureGenerator
 from .evaluator import Evaluator
 from .figure_generator import FigureGenerator
 from .submission_handler import SubmissionHandler
+from .submission_validator import SubmissionValidator
 from .table_generator import TableGenerator
 
 __all__ = [# Configuration
@@ -50,6 +55,7 @@ __all__ = [# Configuration
            "CatalogEntry",
            # Ingestion
            "SubmissionHandler",
+           "SubmissionValidator",
            # Data loading
            "SubmissionDataLoader",
            "GroundTruthDataLoader",
