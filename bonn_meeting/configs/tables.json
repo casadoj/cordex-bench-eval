@@ -1,16 +1,62 @@
 {
   "metrics_registry_path": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/metrics.json",
   "tables": {
-    "pr_esd_perfect_extrapolation": {
+    "pr_emulator_hist_future_perfect_cross_validation": {
+      "description": "PR - (Emulator Hist-Future) Perfect Cross Validation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "CDD_bias", "key": "cdd_bias", "reduction": "abs_mean"},
+        {"name": "SDII_ratio", "key": "sdii_ratio", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_emulator_hist_future_perfect_cross_validation": {
+      "description": "TASMAX - (Emulator Hist-Future) Perfect Cross Validation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SU_bias", "key": "su_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"}
+      ]
+    }, "pr_emulator_hist_future_imperfect_interpolation_GCM_transferability": {
+      "description": "PR - (Emulator Hist-Future) Perfect Cross Validation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation_GCM_transferability",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "CDD_bias", "key": "cdd_bias", "reduction": "abs_mean"},
+        {"name": "SDII_ratio", "key": "sdii_ratio", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_emulator_hist_future_imperfect_interpolation_GCM_transferability": {
+      "description": "TASMAX - (Emulator Hist-Future) Perfect Cross Validation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation_GCM_transferability",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SU_bias", "key": "su_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"}
+      ]
+    }, "pr_esd_perfect_extrapolation": {
       "description": "PR - (ESD Pseudo-Reality) Perfect Extrapolation",
       "training_experiment": "ESD_pseudo_reality",
       "evaluation_experiment": "Perfect_extrapolation",
       "variable": "pr",
       "metrics": [
         {"name": "RMSE", "key": "rmse", "reduction": "mean"},
-        {"name": "CDD_bias", "key": "cdd_bias", "reduction": "mean"},
-        {"name": "SDII_ratio", "key": "sdii_ratio", "reduction": "mean"},
-        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "mean"}
+        {"name": "CDD_bias", "key": "cdd_bias", "reduction": "abs_mean"},
+        {"name": "SDII_ratio", "key": "sdii_ratio", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"}
       ]
     },
     "tasmax_esd_perfect_extrapolation": {

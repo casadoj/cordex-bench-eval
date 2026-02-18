@@ -225,7 +225,7 @@ class FigureGenerator:
         gs = fig.add_gridspec(n_rows + 1, n_cols, hspace=0.15, wspace=0.05)
 
         # Prepare shared colorbar
-        cmap, norm, levels = self._build_colormap(ground_truth, predictions, plot_settings)
+        cmap, norm, levels = self._build_colormap(ground_truth, plot_settings)
         sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
         sm.set_array([])
 
@@ -267,7 +267,11 @@ class FigureGenerator:
                             fraction=0.05 if cbar_orientation == "horizontal" else 0.035,
                             pad=0.08)
         if levels is not None:
-            cbar.set_ticks(levels)
+            ticks, labels = self._resolve_colorbar_ticks_and_labels(levels,
+                                                                    plot_settings,
+                                                                    cbar_orientation)
+            cbar.set_ticks(ticks)
+            cbar.set_ticklabels(labels)
         cbar.set_label(colorbar_label)
 
         title = plot_settings.get("title")
@@ -313,20 +317,17 @@ class FigureGenerator:
         return data_array[lon_dim].values, data_array[lat_dim].values
 
     def _build_colormap(self, ground_truth: xr.DataArray,
-                        predictions: Sequence[Tuple[str, xr.DataArray]],
                         plot_settings: Dict[str, Any]) -> Tuple[mcolors.Colormap, mcolors.Normalize, Optional[List[float]]]:
         """Build the colormap for the figure"""
         colorbar_settings = plot_settings.get("colorbar", {})
         levels = max(2, int(colorbar_settings.get("levels", 11)))
         colormap_name = plot_settings.get("colormap", "turbo")
 
-        data_values = [ground_truth.values] + [da.values for _, da in predictions]
-        min_candidates = [np.nanmin(arr) for arr in data_values if not np.all(np.isnan(arr))]
-        max_candidates = [np.nanmax(arr) for arr in data_values if not np.all(np.isnan(arr))]
-        if not min_candidates or not max_candidates:
+        gt_values = ground_truth.values
+        if np.all(np.isnan(gt_values)):
             raise ValueError("Unable to determine color range because all arrays contain NaNs.")
-        data_min = float(np.nanmin(min_candidates))
-        data_max = float(np.nanmax(max_candidates))
+        data_min = float(np.nanmin(gt_values))
+        data_max = float(np.nanmax(gt_values))
         vmin = colorbar_settings.get("vmin")
         vmax = colorbar_settings.get("vmax")
         if vmin is None:
@@ -341,6 +342,43 @@ class FigureGenerator:
         norm = mcolors.BoundaryNorm(boundaries, ncolors=cmap.N)
         tick_positions = list(boundaries)
         return cmap, norm, tick_positions
+
+    def _resolve_colorbar_ticks_and_labels(self, boundaries: Sequence[float],
+                                           plot_settings: Dict[str, Any],
+                                           orientation: str) -> Tuple[List[float], List[str]]:
+        """Reduce dense boundary ticks and generate readable labels."""
+        if not boundaries:
+            return [], []
+
+        colorbar_settings = plot_settings.get("colorbar", {})
+        default_max_ticks = 7 if orientation == "horizontal" else 9
+        max_ticks = int(colorbar_settings.get("max_ticks", default_max_ticks))
+        max_ticks = max(2, max_ticks)
+
+        boundaries_array = np.asarray(boundaries, dtype=float)
+        if boundaries_array.size <= max_ticks:
+            ticks = boundaries_array
+        else:
+            idx = np.linspace(0, boundaries_array.size - 1, num=max_ticks, dtype=int)
+            idx = np.unique(idx)
+            ticks = boundaries_array[idx]
+            if ticks[-1] != boundaries_array[-1]:
+                ticks = np.append(ticks, boundaries_array[-1])
+
+        labels = [self._format_colorbar_tick(value, ticks) for value in ticks]
+        return ticks.tolist(), labels
+
+    def _format_colorbar_tick(self, value: float, ticks: np.ndarray) -> str:
+        """Format tick labels with compact, consistent precision."""
+        if ticks.size < 2:
+            return np.format_float_positional(value, precision=3, trim='-')
+
+        min_step = float(np.min(np.abs(np.diff(ticks))))
+        if min_step <= 0:
+            decimals = 2
+        else:
+            decimals = max(0, min(4, int(np.ceil(-np.log10(min_step))) + 1))
+        return np.format_float_positional(value, precision=decimals, trim='-')
 
     def _resolve_submission_names(self, submission_names: Optional[Sequence[str]]) -> List[str]:
         """Resolve submission names from the catalog"""

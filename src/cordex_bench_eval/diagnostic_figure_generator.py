@@ -217,9 +217,15 @@ class DiagnosticFigureGenerator:
                             fraction=0.05 if cbar_orientation == "horizontal" else 0.035,
                             pad=0.08)
         if levels is not None:
-            cbar.set_ticks(levels)
+            ticks, labels = self._resolve_colorbar_ticks_and_labels(levels,
+                                                                    plot_settings,
+                                                                    cbar_orientation)
+            cbar.set_ticks(ticks)
+            cbar.set_ticklabels(labels)
         cbar.set_label(colorbar_label)
-        cbar.ax.tick_params(labelsize=6) # TODO: Remove this hard-coded parameter
+        tick_label_size = plot_settings.get("colorbar_tick_labelsize")
+        if tick_label_size is not None:
+            cbar.ax.tick_params(labelsize=tick_label_size)
 
         # Add title
         title = plot_settings.get("title")
@@ -291,6 +297,43 @@ class DiagnosticFigureGenerator:
         norm = mcolors.BoundaryNorm(boundaries, ncolors=cmap.N)
         tick_positions = list(boundaries)
         return cmap, norm, tick_positions
+
+    def _resolve_colorbar_ticks_and_labels(self, boundaries: Sequence[float],
+                                           plot_settings: Dict[str, Any],
+                                           orientation: str) -> Tuple[List[float], List[str]]:
+        """Reduce dense boundary ticks and generate readable labels."""
+        if not boundaries:
+            return [], []
+
+        colorbar_settings = plot_settings.get("colorbar", {})
+        default_max_ticks = 7 if orientation == "horizontal" else 9
+        max_ticks = int(colorbar_settings.get("max_ticks", default_max_ticks))
+        max_ticks = max(2, max_ticks)
+
+        boundaries_array = np.asarray(boundaries, dtype=float)
+        if boundaries_array.size <= max_ticks:
+            ticks = boundaries_array
+        else:
+            idx = np.linspace(0, boundaries_array.size - 1, num=max_ticks, dtype=int)
+            idx = np.unique(idx)
+            ticks = boundaries_array[idx]
+            if ticks[-1] != boundaries_array[-1]:
+                ticks = np.append(ticks, boundaries_array[-1])
+
+        labels = [self._format_colorbar_tick(value, ticks) for value in ticks]
+        return ticks.tolist(), labels
+
+    def _format_colorbar_tick(self, value: float, ticks: np.ndarray) -> str:
+        """Format tick labels with compact, consistent precision."""
+        if ticks.size < 2:
+            return np.format_float_positional(value, precision=3, trim='-')
+
+        min_step = float(np.min(np.abs(np.diff(ticks))))
+        if min_step <= 0:
+            decimals = 2
+        else:
+            decimals = max(0, min(4, int(np.ceil(-np.log10(min_step))) + 1))
+        return np.format_float_positional(value, precision=decimals, trim='-')
 
     def _infer_dim(self, data_array: xr.DataArray, axis: str) -> str:
         """Infer the dimension name for the given axis."""

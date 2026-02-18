@@ -93,11 +93,16 @@ class TableGenerator:
         # Build table data
         table_data = []
         index_tuples = []
+        metric_specs_by_name: Dict[str, Dict[str, str]] = {}
         
         for metric_spec in metrics_list:
             metric_name = metric_spec["name"]
             metric_key = metric_spec["key"]
             reduction_fn = metric_spec.get("reduction", "mean")
+            metric_specs_by_name[metric_name] = {
+                "key": metric_key,
+                "reduction": reduction_fn,
+            }
             
             for domain in domains:
                 domain_short = self._extract_domain_short(domain)
@@ -113,7 +118,8 @@ class TableGenerator:
                                                         metric_key=metric_key,
                                                         reduction_fn=reduction_fn)
                         row_data[submission_name] = value
-                    except FileNotFoundError:
+                    except Exception:
+                        # Missing/corrupted diagnostics should not stop table generation.
                         row_data[submission_name] = np.nan
                 
                 table_data.append(row_data)
@@ -136,7 +142,7 @@ class TableGenerator:
 
                             if not np.isnan(value):
                                 domain_values.append(value)
-                        except FileNotFoundError:
+                        except Exception:
                             pass
                     
                     avg_row[submission_name] = np.mean(domain_values) if domain_values else np.nan
@@ -147,6 +153,7 @@ class TableGenerator:
         # Create DataFrame
         df = pd.DataFrame(table_data, columns=submission_names)
         df.index = pd.MultiIndex.from_tuples(index_tuples, names=["Metric", "Domain"])
+        df.attrs["metric_specs_by_name"] = metric_specs_by_name
         
         return df
 
@@ -185,14 +192,33 @@ class TableGenerator:
         """
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
+        highlight_best = kwargs.pop("highlight_best", format in {"latex", "html"})
         
         if format == "csv":
             df.to_csv(output_path, **kwargs)
         elif format == "latex":
-            latex_str = df.to_latex(**kwargs)
+            kwargs.setdefault("float_format", "%.3f")
+            if highlight_best:
+                bold_df = self._format_best_cells(df=df,
+                                                  output_format="latex",
+                                                  float_format=kwargs.get("float_format"))
+                kwargs.setdefault("escape", False)
+                kwargs.pop("float_format", None)
+                latex_str = bold_df.to_latex(**kwargs)
+            else:
+                latex_str = df.to_latex(**kwargs)
             output_path.write_text(latex_str)
         elif format == "html":
-            html_str = df.to_html(**kwargs)
+            kwargs.setdefault("float_format", "%.3f")
+            if highlight_best:
+                bold_df = self._format_best_cells(df=df,
+                                                  output_format="html",
+                                                  float_format=kwargs.get("float_format"))
+                kwargs.setdefault("escape", False)
+                kwargs.pop("float_format", None)
+                html_str = bold_df.to_html(**kwargs)
+            else:
+                html_str = df.to_html(**kwargs)
             output_path.write_text(html_str)
         else:
             raise ValueError(f"Unknown format: {format}")
@@ -295,3 +321,99 @@ class TableGenerator:
         if "_Domain" in domain:
             return domain.replace("_Domain", "")
         return domain
+
+    def _format_best_cells(self, df: pd.DataFrame, output_format: str,
+                           float_format: Any = None) -> pd.DataFrame:
+        """Return a copy where best cells per row are wrapped in bold markup."""
+        best_mask = self._compute_best_mask(df)
+        # Use object dtype so we can safely inject HTML/LaTeX strings
+        # into otherwise numeric tables.
+        formatted = df.copy().astype(object)
+
+        for row_idx in formatted.index:
+            for col in formatted.columns:
+                value = formatted.loc[row_idx, col]
+                if pd.isna(value):
+                    continue
+
+                value_str = self._format_scalar(value, float_format=float_format)
+                if best_mask.loc[row_idx, col]:
+                    if output_format == "html":
+                        formatted.loc[row_idx, col] = f"<strong>{value_str}</strong>"
+                    elif output_format == "latex":
+                        formatted.loc[row_idx, col] = f"\\textbf{{{value_str}}}"
+                    else:
+                        raise ValueError(f"Unsupported output format for bolding: {output_format}")
+                else:
+                    formatted.loc[row_idx, col] = value_str
+
+        return formatted
+
+    def _compute_best_mask(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Compute a boolean mask of best-performing cells per (metric, domain) row."""
+        best_mask = pd.DataFrame(False, index=df.index, columns=df.columns)
+        metric_specs = df.attrs.get("metric_specs_by_name", {})
+        metrics_registry = self.evaluator.metrics_registry.get("metrics", {})
+
+        for row_idx in df.index:
+            metric_name = row_idx[0] if isinstance(row_idx, tuple) else row_idx
+            metric_name = str(metric_name)
+            spec = metric_specs.get(metric_name, {})
+            reduction_fn = spec.get("reduction", "mean")
+            metric_key = spec.get("key")
+            metric_type = metrics_registry.get(metric_key, {}).get("type")
+
+            row_values = pd.to_numeric(df.loc[row_idx], errors="coerce")
+            score_values = self._score_row_for_best(row_values=row_values,
+                                                    metric_name=metric_name,
+                                                    metric_type=metric_type,
+                                                    reduction_fn=reduction_fn)
+
+            valid_scores = score_values[np.isfinite(score_values)]
+            if valid_scores.empty:
+                continue
+
+            best_score = float(valid_scores.min())
+            tied_best = pd.Series(
+                np.isclose(score_values.to_numpy(dtype=float), best_score, equal_nan=False),
+                index=score_values.index,
+            )
+            best_cols = tied_best[tied_best].index.tolist()
+            if best_cols:
+                best_mask.loc[row_idx, best_cols] = True
+
+        return best_mask
+
+    def _score_row_for_best(self, row_values: pd.Series, metric_name: str,
+                            metric_type: Optional[str], reduction_fn: str) -> pd.Series:
+        """Convert row values to comparable scores (lower score is better)."""
+        if metric_type == "rmse":
+            return row_values
+        if metric_type == "bias_index":
+            if reduction_fn == "abs_mean":
+                return row_values
+            return row_values.abs()
+        if metric_type == "ratio_index":
+            return (row_values - 1.0).abs()
+
+        # Fallback if metric type metadata is not available.
+        metric_name_lower = metric_name.lower()
+        if "ratio" in metric_name_lower:
+            return (row_values - 1.0).abs()
+        if "rmse" in metric_name_lower:
+            return row_values
+        return row_values.abs()
+
+    def _format_scalar(self, value: Any, float_format: Any = None) -> str:
+        """Format a scalar value using pandas-like float formatting when available."""
+        numeric_value = pd.to_numeric(value, errors="coerce")
+        if pd.isna(numeric_value):
+            return str(value)
+        if float_format is None:
+            return str(numeric_value)
+        if callable(float_format):
+            return str(float_format(float(numeric_value)))
+        try:
+            return str(float_format % float(numeric_value))
+        except (TypeError, ValueError):
+            return str(numeric_value)

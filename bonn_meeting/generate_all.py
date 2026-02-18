@@ -50,14 +50,19 @@ def main():
     catalog = SubmissionCatalog(config.catalog_path)
 
     # Override submissions if needed (e.g. subset for meeting)
-    submission_names = ['FlowMatching-v1', 'FlowMatching-v1-orog',
-                        'UiBCorrDiff-orog', 'RCMGEM-mv-orog']
+    submission_names = ['FlowMatching-v1', 'FlowMatching-v1-orog', 'UiBCorrDiff-orog',
+                        'RCMGEM-mv-orog']
 
     # print("Generating tables...")
     # table_gen = TableGenerator(config=config,
     #                            catalog=catalog,
     #                            table_config_path=str(TABLES_CONFIG_PATH))
-    # table_names = ["pr_esd_perfect_extrapolation", "tasmax_esd_perfect_extrapolation"]
+    # table_names = ["pr_emulator_hist_future_perfect_cross_validation",
+    #                "tasmax_emulator_hist_future_perfect_cross_validation",
+    #                "pr_emulator_hist_future_imperfect_interpolation_GCM_transferability",
+    #                "tasmax_emulator_hist_future_imperfect_interpolation_GCM_transferability",
+    #                "pr_esd_perfect_extrapolation",
+    #                "tasmax_esd_perfect_extrapolation"]
     # for name in table_names:
     #     df = table_gen.generate_table(table_name=name,
     #                                   submission_names=submission_names,
@@ -68,33 +73,42 @@ def main():
     #         table_gen.export_table(df=df, output_path=str(out), format=fmt)
     #     print(f"  {name} → {TABLES_DIR}/")
 
-    print("Generating figures (daily snapshots)...")
-    figure_gen = FigureGenerator(config=config,
-                                 catalog=catalog,
-                                 figure_config_path=str(FIGURES_CONFIG_PATH))
-    figure_names = ["sa_pr_daily_snapshot_1985-02-03", "sa_pr_daily_snapshot_1985-02-04",
-                    "sa_pr_daily_snapshot_1993-07-07", "sa_pr_daily_snapshot_1993-07-08"]
-    for name in figure_names:
-        figure_gen.generate_figure(figure_name=name,
-                                   submission_names=submission_names,
-                                   output_dir=str(FIGURES_DIR))
-        print(f"  {name}")
+    # print("Generating figures (daily snapshots)...")
+    # figure_gen = FigureGenerator(config=config,
+    #                              catalog=catalog,
+    #                              figure_config_path=str(FIGURES_CONFIG_PATH))
+    # figure_names = ["sa_pr_daily_snapshot_perfect_interpolation_transferability",
+    #                 "sa_pr_daily_snapshot_imperfect_interpolation_transferability"]
 
-    # print("Generating diagnostic figures (spatial maps)...")
-    # evaluator = Evaluator(config=config,
-    #                       catalog=catalog,
-    #                       metrics_registry_path=str(METRICS_PATH),
-    #                       ml_benchmark_path=config.mlbenchmark_path)
-    # diag_gen = DiagnosticFigureGenerator(config=config,
-    #                                      catalog=catalog,
-    #                                      evaluator=evaluator,
-    #                                      figure_config_path=str(DIAGNOSTIC_FIGURES_CONFIG_PATH))
-    # diag_names = ["alps_pr_rmse_map", "nz_pr_rmse_map", "alps_tasmax_rmse_map", "alps_txx_map"]
-    # for name in diag_names:
-    #     diag_gen.generate_figure(figure_name=name,
-    #                              submission_names=submission_names,
-    #                              output_dir=str(DIAGNOSTIC_FIGURES_DIR))
+    # for name in figure_names:
+    #     figure_gen.generate_figure(figure_name=name,
+    #                                submission_names=submission_names,
+    #                                output_dir=str(FIGURES_DIR))
     #     print(f"  {name}")
+
+    print("Generating diagnostic figures (spatial maps)...")
+    evaluator = Evaluator(config=config,
+                          catalog=catalog,
+                          metrics_registry_path=str(METRICS_PATH),
+                          ml_benchmark_path=config.mlbenchmark_path)
+    diag_gen = DiagnosticFigureGenerator(config=config,
+                                         catalog=catalog,
+                                         evaluator=evaluator,
+                                         figure_config_path=str(DIAGNOSTIC_FIGURES_CONFIG_PATH))
+    diag_names = ["alps_emulator_hist_future_perfect_cross_validation_txx_map",
+                  "nz_emulator_hist_future_perfect_cross_validation_txx_map",
+                #   "sa_emulator_hist_future_perfect_cross_validation_txx_map",
+                  "alps_emulator_hist_future_imperfect_interpolation_gcm_transferability_txx_map",
+                  "nz_emulator_hist_future_imperfect_interpolation_gcm_transferability_txx_map",
+                #   "sa_emulator_hist_future_imperfect_interpolation_gcm_transferability_txx_map",
+                  "alps_esd_pseudo_reality_perfect_extrapolation_txx_map",
+                  "nz_esd_pseudo_reality_perfect_extrapolation_txx_map"]
+                #   "sa_esd_pseudo_reality_perfect_extrapolation_txx_map"]
+    for name in diag_names:
+        diag_gen.generate_figure(figure_name=name,
+                                 submission_names=submission_names,
+                                 output_dir=str(DIAGNOSTIC_FIGURES_DIR))
+        print(f"  {name}")
 
     # print("Done. Outputs in:")
     # print(f"  Tables:        {TABLES_DIR}")

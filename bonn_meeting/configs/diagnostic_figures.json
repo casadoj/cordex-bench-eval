@@ -11,52 +11,8 @@
     "colorbar": {"levels": 11, "vmin": null, "vmax": null}
   },
   "figures": {
-    "alps_pr_rmse_map": {
-      "description": "RMSE spatial map for precipitation in Alps domain.",
-      "domain": "ALPS_Domain",
-      "training_experiment": "Emulator_hist_future",
-      "evaluation_experiment": "Perfect_cross_validation",
-      "variable": "pr",
-      "metric": "rmse",
-      "colorbar_label": "RMSE (mm/day)",
-      "colormap": "Reds",
-      "colorbar": {"levels": 15, "vmin": 0, "vmax": null}
-    },
-    "sa_pr_rmse_map": {
-      "description": "RMSE spatial map for precipitation in South America domain.",
-      "domain": "SA_Domain",
-      "training_experiment": "ESD_pseudo_reality",
-      "evaluation_experiment": "Perfect_cross_validation",
-      "variable": "pr",
-      "metric": "rmse",
-      "colorbar_label": "RMSE (mm/day)",
-      "colormap": "Reds",
-      "colorbar": {"levels": 15, "vmin": 0, "vmax": null}
-    },
-    "nz_pr_rmse_map": {
-      "description": "RMSE spatial map for precipitation in New Zealand domain.",
-      "domain": "NZ_Domain",
-      "training_experiment": "Emulator_hist_future",
-      "evaluation_experiment": "Perfect_cross_validation",
-      "variable": "pr",
-      "metric": "rmse",
-      "colorbar_label": "RMSE (mm/day)",
-      "colormap": "Reds",
-      "colorbar": {"levels": 15, "vmin": 0, "vmax": null}
-    },
-    "alps_tasmax_rmse_map": {
-      "description": "RMSE spatial map for maximum temperature in Alps domain.",
-      "domain": "ALPS_Domain",
-      "training_experiment": "ESD_pseudo_reality",
-      "evaluation_experiment": "Perfect_cross_validation",
-      "variable": "tasmax",
-      "metric": "rmse",
-      "colorbar_label": "RMSE (K)",
-      "colormap": "Reds",
-      "colorbar": {"levels": 15, "vmin": 0, "vmax": null}
-    },
-    "alps_txx_map": {
-      "description": "TXX spatial map for maximum temperature in Alps domain.",
+    "alps_emulator_hist_future_perfect_cross_validation_txx_map": {
+      "description": "TXX spatial map for maximum temperature in Alps domain: Emulator_hist_future vs Perfect_cross_validation.",
       "domain": "ALPS_Domain",
       "training_experiment": "Emulator_hist_future",
       "evaluation_experiment": "Perfect_cross_validation",
@@ -64,7 +20,95 @@
       "metric": "txx_bias",
       "colorbar_label": "TXX bias (K)",
       "colormap": "RdBu_r",
-      "colorbar": {"levels": 15, "vmin": -4, "vmax": 4}
+      "colorbar": {"levels": 15, "vmin": -2, "vmax": 2}
+    },
+    "nz_emulator_hist_future_perfect_cross_validation_txx_map": {
+      "description": "TXX spatial map for maximum temperature in NZ domain: Emulator_hist_future vs Perfect_cross_validation.",
+      "domain": "NZ_Domain",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "tasmax",
+      "metric": "txx_bias",
+      "colorbar_label": "TXX bias (K)",
+      "colormap": "RdBu_r",
+      "colorbar": {"levels": 15, "vmin": -2, "vmax": 2}
+    },
+    "sa_emulator_hist_future_perfect_cross_validation_txx_map": {
+      "description": "TXX spatial map for maximum temperature in South America domain: Emulator_hist_future vs Perfect_cross_validation.",
+      "domain": "SA_Domain",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "tasmax",
+      "metric": "txx_bias",
+      "colorbar_label": "TXX bias (K)",
+      "colormap": "RdBu_r",
+      "colorbar": {"levels": 15, "vmin": -2, "vmax": 2}
+    },
+    "alps_emulator_hist_future_imperfect_interpolation_gcm_transferability_txx_map": {
+      "description": "TXX spatial map for maximum temperature in Alps domain: Emulator_hist_future vs Imperfect_interpolation_GCM_transferability.",
+      "domain": "ALPS_Domain",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation_GCM_transferability",
+      "variable": "tasmax",
+      "metric": "txx_bias",
+      "colorbar_label": "TXX bias (K)",
+      "colormap": "RdBu_r",
+      "colorbar": {"levels": 15, "vmin": -2, "vmax": 2}
+    },
+    "nz_emulator_hist_future_imperfect_interpolation_gcm_transferability_txx_map": {
+      "description": "TXX spatial map for maximum temperature in NZ domain: Emulator_hist_future vs Imperfect_interpolation_GCM_transferability.",
+      "domain": "NZ_Domain",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation_GCM_transferability",
+      "variable": "tasmax",
+      "metric": "txx_bias",
+      "colorbar_label": "TXX bias (K)",
+      "colormap": "RdBu_r",
+      "colorbar": {"levels": 15, "vmin": -2, "vmax": 2}
+    },
+    "sa_emulator_hist_future_imperfect_interpolation_gcm_transferability_txx_map": {
+      "description": "TXX spatial map for maximum temperature in South America domain: Emulator_hist_future vs Imperfect_interpolation_GCM_transferability.",
+      "domain": "SA_Domain",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation_GCM_transferability",
+      "variable": "tasmax",
+      "metric": "txx_bias",
+      "colorbar_label": "TXX bias (K)",
+      "colormap": "RdBu_r",
+      "colorbar": {"levels": 15, "vmin": -2, "vmax": 2}
+    },
+    "alps_esd_pseudo_reality_perfect_extrapolation_txx_map": {
+      "description": "TXX spatial map for maximum temperature in Alps domain: ESD_pseudo_reality vs Perfect_extrapolation.",
+      "domain": "ALPS_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_extrapolation",
+      "variable": "tasmax",
+      "metric": "txx_bias",
+      "colorbar_label": "TXX bias (K)",
+      "colormap": "RdBu_r",
+      "colorbar": {"levels": 15, "vmin": -2, "vmax": 2}
+    },
+    "nz_esd_pseudo_reality_perfect_extrapolation_txx_map": {
+      "description": "TXX spatial map for maximum temperature in NZ domain: ESD_pseudo_reality vs Perfect_extrapolation.",
+      "domain": "NZ_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_extrapolation",
+      "variable": "tasmax",
+      "metric": "txx_bias",
+      "colorbar_label": "TXX bias (K)",
+      "colormap": "RdBu_r",
+      "colorbar": {"levels": 15, "vmin": -2, "vmax": 2}
+    },
+    "sa_esd_pseudo_reality_perfect_extrapolation_txx_map": {
+      "description": "TXX spatial map for maximum temperature in South America domain: ESD_pseudo_reality vs Perfect_extrapolation.",
+      "domain": "SA_Domain",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_extrapolation",
+      "variable": "tasmax",
+      "metric": "txx_bias",
+      "colorbar_label": "TXX bias (K)",
+      "colormap": "RdBu_r",
+      "colorbar": {"levels": 15, "vmin": -2, "vmax": 2}
     }
   }
 }
