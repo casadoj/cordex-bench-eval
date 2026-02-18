@@ -166,6 +166,15 @@ class SubmissionDataLoader:
         domain_key = _normalize_domain_key(domain)
         gcm_name = _GCM_TRAIN[domain_key] if same_gcm_as_train else _GCM_EVAL[domain_key]
         
+        # Compute variables to drop when loading a single variable 
+        if variable is not None:
+            path_for_probe = self._get_prediction_path(
+                submission_name, domain, experiment_name,
+                "mid_century" if period == "mid_end_century" else period,
+                condition, gcm_name
+            )
+            open_kwargs = {**open_kwargs, "drop_variables": _vars_to_drop(path_for_probe, variable)}
+
         # Handle combined mid+end century periods
         if period == "mid_end_century":
             mid_path = self._get_prediction_path(submission_name, domain, experiment_name,
@@ -314,6 +323,8 @@ class GroundTruthDataLoader:
             Ground truth training dataset.
         """
         path = self._train_target_path(domain, training_experiment)
+        if variable is not None:
+            open_kwargs = {**open_kwargs, "drop_variables": _vars_to_drop(path, variable)}
         ds = xr.open_dataset(path, **open_kwargs)
 
         return self._maybe_subset_variable(ds, variable)
@@ -347,6 +358,13 @@ class GroundTruthDataLoader:
         period, _, same_gcm_as_train = self._resolve_experiment(training_experiment, evaluation_experiment)
         domain_key = _normalize_domain_key(domain)
         gcm_name = _GCM_TRAIN[domain_key] if same_gcm_as_train else _GCM_EVAL[domain_key]
+
+        # Compute variables to drop when loading a single variable (avoids OOM)
+        if variable is not None:
+            path_for_probe = self._test_target_path(
+                domain, "mid_century" if period == "mid_end_century" else period, gcm_name
+            )
+            open_kwargs = {**open_kwargs, "drop_variables": _vars_to_drop(path_for_probe, variable)}
 
         # Handle combined mid+end century period
         if period == "mid_end_century":
@@ -454,6 +472,12 @@ class GroundTruthDataLoader:
         if variable not in ds.data_vars:
             raise KeyError(f"Variable '{variable}' not found in dataset.")
         return ds[[variable]]
+
+
+def _vars_to_drop(path: Path, keep_variable: str) -> List[str]:
+    """Return data variable names to drop when loading, so only keep_variable is loaded."""
+    with xr.open_dataset(path) as probe:
+        return [v for v in probe.data_vars if v != keep_variable]
 
 
 def _list_dir_names(path: Path) -> List[str]:

@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
+import re
 from itertools import product
 from pathlib import Path
 from typing import Any, Callable, List
@@ -19,6 +20,8 @@ import xarray as xr
 from .catalog import SubmissionCatalog
 from .config import SubmissionWorkflowConfig
 from .data_loader import GroundTruthDataLoader, SubmissionDataLoader
+
+_VALID_SEASONS = frozenset({"winter", "summer", "spring", "autumn"})
 
 class Evaluator:
     """
@@ -58,7 +61,7 @@ class Evaluator:
     def evaluate(self, submission_name: str, domain: str, training_experiment: str,
                  evaluation_experiment: str, variable: str, metrics: List[str] | None = None,
                  season: str | None = None, recompute_existing: bool = False,
-                 **open_kwargs: Any) -> dict[str, xr.Dataset]:
+                 **open_kwargs: Any) -> dict[str, list[str]]:
         """
         Compute metrics for a prediction and save results.
         
@@ -80,15 +83,17 @@ class Evaluator:
             Season filter ("winter", "summer", "spring", "autumn").
         recompute_existing : bool, optional
             If True, recompute and overwrite metric files even when they already
-            exist. If False (default), existing metric files are loaded and
-            reused.
+            exist. If False (default), existing metric files are reused without
+            being loaded into memory.
         **open_kwargs
             Additional arguments passed to xarray.open_dataset().
         
         Returns
         -------
-        dict[str, xr.Dataset]
-            Dictionary mapping metric names to computed result datasets.
+        dict[str, list[str]]
+            Lightweight execution summary with metric names grouped by status:
+            ``computed``, ``reused``, and ``failed``. Metric datasets are always
+            saved to disk and are not retained in memory by this method.
         """
         if metrics is None:
             metrics = self.metrics_registry.get("defaults", {}).get(variable, [])
@@ -103,82 +108,125 @@ class Evaluator:
         pred_ds: xr.Dataset | None = None
         gt_ds: xr.Dataset | None = None
 
-        # Compute each metric
-        results = {}
+        # Compute each metric without retaining metric datasets in memory.
+        computed_metrics: list[str] = []
+        reused_metrics: list[str] = []
+        failed_metrics: list[str] = []
         for metric_index, metric_name in enumerate(metrics, start=1):
-            if metric_name not in self.metrics_registry.get("metrics", {}):
-                raise ValueError(f"Unknown metric: {metric_name}")
-
             metric_path = self._metric_path(submission_name=submission_name,
                                             domain=domain,
                                             training_experiment=training_experiment,
                                             evaluation_experiment=evaluation_experiment,
                                             variable=variable,
-                                            metric_name=metric_name)
-            if metric_path.exists() and not recompute_existing:
-                with xr.open_dataset(metric_path, **open_kwargs) as cached_ds:
-                    results[metric_name] = cached_ds.load()
+                                            metric_name=metric_name,
+                                            season=season)
+            try:
+                if metric_name not in self.metrics_registry.get("metrics", {}):
+                    raise ValueError(f"Unknown metric: {metric_name}")
+
+                if metric_path.exists() and not recompute_existing:
+                    reused_metrics.append(metric_name)
+                    print(
+                        f"[Evaluator] [{context_label}] "
+                        f"Metric {metric_index}/{total_metrics}: {metric_name} "
+                        f"(loaded existing: {metric_path})"
+                    )
+                    continue
+
                 print(
                     f"[Evaluator] [{context_label}] "
-                    f"Metric {metric_index}/{total_metrics}: {metric_name} "
-                    f"(loaded existing: {metric_path})"
+                    f"Metric {metric_index}/{total_metrics}: {metric_name} (start)"
                 )
+                if pred_ds is None or gt_ds is None:
+                    print(f"[Evaluator] Loading datasets for {context_label}")
+                    pred_ds, gt_ds = self._load_and_align_datasets(submission_name=submission_name,
+                                                                   domain=domain,
+                                                                   training_experiment=training_experiment,
+                                                                   evaluation_experiment=evaluation_experiment,
+                                                                   variable=variable,
+                                                                   **open_kwargs)
+                    print(f"[Evaluator] Datasets loaded and aligned for {context_label}")
+
+                metric_config = self.metrics_registry["metrics"][metric_name]
+                member_handling = metric_config.get("member_handling", "mean")
+                selection_context = "|".join([
+                    submission_name,
+                    domain,
+                    training_experiment,
+                    evaluation_experiment,
+                    variable,
+                    metric_name,
+                ])
+                metric_pred_ds, metric_gt_ds = self._apply_member_handling_to_datasets(
+                    pred_ds=pred_ds,
+                    gt_ds=gt_ds,
+                    member_handling=member_handling,
+                    selection_context=selection_context,
+                )
+
+                metric_ds = self._compute_metric(pred_ds=metric_pred_ds, gt_ds=metric_gt_ds, variable=variable,
+                                                 metric_name=metric_name, metric_config=metric_config,
+                                                 season=season)
+
+                # Save metric to NetCDF
+                metric_path.parent.mkdir(parents=True, exist_ok=True)
+                metric_ds.to_netcdf(metric_path)
+                print(
+                    f"[Evaluator] [{context_label}] "
+                    f"Metric {metric_index}/{total_metrics}: {metric_name} (saved: {metric_path})"
+                )
+
+                computed_metrics.append(metric_name)
+            except Exception as exc:
+                failed_metrics.append(metric_name)
+                failed_file = self._extract_failed_file_path(exc)
+                print(
+                    f"[Evaluator][ERROR] [{context_label}] "
+                    f"Metric {metric_index}/{total_metrics}: {metric_name} failed "
+                    f"({type(exc).__name__}: {exc})"
+                )
+                print(
+                    f"[Evaluator][ERROR] [{context_label}] "
+                    f"Metric {metric_name} output path: {metric_path}"
+                )
+                if failed_file is not None:
+                    print(
+                        f"[Evaluator][ERROR] [{context_label}] "
+                        f"Metric {metric_name} failed file: {failed_file}"
+                    )
                 continue
 
+        if pred_ds is not None:
+            pred_ds.close()
+        if gt_ds is not None:
+            gt_ds.close()
+
+        success_count = len(computed_metrics) + len(reused_metrics)
+        if failed_metrics:
             print(
-                f"[Evaluator] [{context_label}] "
-                f"Metric {metric_index}/{total_metrics}: {metric_name} (start)"
+                f"[Evaluator] Completed context {context_label} "
+                f"(success={success_count}/{total_metrics}, "
+                f"computed={len(computed_metrics)}, reused={len(reused_metrics)}, "
+                f"failed={len(failed_metrics)}: {', '.join(failed_metrics)})"
             )
-            if pred_ds is None or gt_ds is None:
-                print(f"[Evaluator] Loading datasets for {context_label}")
-                pred_ds, gt_ds = self._load_and_align_datasets(submission_name=submission_name,
-                                                               domain=domain,
-                                                               training_experiment=training_experiment,
-                                                               evaluation_experiment=evaluation_experiment,
-                                                               variable=variable,
-                                                               **open_kwargs)
-                print(f"[Evaluator] Datasets loaded and aligned for {context_label}")
-
-            metric_config = self.metrics_registry["metrics"][metric_name]
-            member_handling = metric_config.get("member_handling", "mean")
-            selection_context = "|".join([
-                submission_name,
-                domain,
-                training_experiment,
-                evaluation_experiment,
-                variable,
-                metric_name,
-            ])
-            metric_pred_ds, metric_gt_ds = self._apply_member_handling_to_datasets(
-                pred_ds=pred_ds,
-                gt_ds=gt_ds,
-                member_handling=member_handling,
-                selection_context=selection_context,
-            )
-
-            metric_ds = self._compute_metric(pred_ds=metric_pred_ds, gt_ds=metric_gt_ds, variable=variable,
-                                             metric_name=metric_name, metric_config=metric_config,
-                                             season=season)
-
-            # Save metric to NetCDF
-            metric_path.parent.mkdir(parents=True, exist_ok=True)
-            metric_ds.to_netcdf(metric_path)
+        else:
             print(
-                f"[Evaluator] [{context_label}] "
-                f"Metric {metric_index}/{total_metrics}: {metric_name} (saved: {metric_path})"
+                f"[Evaluator] Completed context {context_label} "
+                f"(success={success_count}/{total_metrics}, "
+                f"computed={len(computed_metrics)}, reused={len(reused_metrics)}, failed=0)"
             )
-
-            results[metric_name] = metric_ds
-
-        print(f"[Evaluator] Completed context {context_label}")
-        return results
+        return {
+            "computed": computed_metrics,
+            "reused": reused_metrics,
+            "failed": failed_metrics,
+        }
 
     def evaluate_multiple(self, submission_names: List[str], domain: str | List[str],
                           training_experiment: str | List[str],
                           evaluation_experiment: str | List[str],
                           variable: str, metrics: List[str] | None = None,
                           season: str | None = None, recompute_existing: bool = False,
-                          **open_kwargs: Any) -> dict[str, dict[str, xr.Dataset]]:
+                          **open_kwargs: Any) -> dict[str, dict[str, list[str]]]:
         """
         Compute metrics for multiple submissions and save results.
 
@@ -200,19 +248,19 @@ class Evaluator:
             Season filter ("winter", "summer", "spring", "autumn").
         recompute_existing : bool, optional
             If True, recompute and overwrite metric files even when they already
-            exist. If False (default), existing metric files are loaded and
-            reused.
+            exist. If False (default), existing metric files are reused without
+            being loaded into memory.
         **open_kwargs
             Additional arguments passed to xarray.open_dataset().
 
         Returns
         -------
-        dict[str, dict[str, xr.Dataset]]
+        dict[str, dict[str, list[str]]]
             Dictionary mapping:
-            - submission names to metric result dictionaries when single values are provided
+            - submission names to per-context execution summaries when single values are provided
             - composite context keys
               "{submission}|{domain}|{training_experiment}|{evaluation_experiment}|{variable}"
-              to metric result dictionaries when any multi-value input is provided
+              to per-context execution summaries when any multi-value input is provided
         """
         def _as_list(value: str | List[str]) -> List[str]:
             if isinstance(value, str):
@@ -239,7 +287,7 @@ class Evaluator:
             f"variable={variable}, season={season}"
         )
 
-        results: dict[str, dict[str, xr.Dataset]] = {}
+        results: dict[str, dict[str, list[str]]] = {}
         for context_index, (submission_name, domain_name, training_name, evaluation_name) in enumerate(
             product(submission_names, domains, training_experiments, evaluation_experiments), start=1
         ):
@@ -266,10 +314,17 @@ class Evaluator:
         return results
 
     def available_metric_files(self, submission_name: str, domain: str, training_experiment: str,
-                               evaluation_experiment: str, variable: str) -> List[str]:
+                               evaluation_experiment: str, variable: str,
+                               season: str | None = None) -> List[str]:
         """
         List saved metric files for a prediction.
-        
+
+        Parameters
+        ----------
+        season : str, optional
+            Season filter ("winter", "summer", "spring", "autumn"). If None,
+            list annual (non-seasonal) metric files.
+
         Returns
         -------
         list of str
@@ -284,10 +339,25 @@ class Evaluator:
         if not metric_dir.exists():
             return []
 
-        return sorted([f.name for f in metric_dir.glob("metric_*.nc")])
+        if season is None:
+            return sorted([
+                f.name
+                for f in metric_dir.glob("metric_*.nc")
+                if not any(f.stem.endswith(f"_{known_season}") for known_season in _VALID_SEASONS)
+            ])
+
+        season_token = str(season).strip().lower()
+        if not season_token:
+            return sorted([
+                f.name
+                for f in metric_dir.glob("metric_*.nc")
+                if not any(f.stem.endswith(f"_{known_season}") for known_season in _VALID_SEASONS)
+            ])
+        return sorted([f.name for f in metric_dir.glob(f"metric_*_{season_token}.nc")])
 
     def load_metric(self, submission_name: str, domain: str, training_experiment: str,
                     evaluation_experiment: str, variable: str, metric_name: str,
+                    season: str | None = None,
                     **open_kwargs: Any) -> xr.Dataset:
         """
         Load a previously saved metric.
@@ -296,6 +366,9 @@ class Evaluator:
         ----------
         metric_name : str
             Name of the metric to load.
+        season : str, optional
+            Season filter ("winter", "summer", "spring", "autumn"). If None,
+            loads annual metric file.
         
         Returns
         -------
@@ -307,7 +380,8 @@ class Evaluator:
                                         training_experiment=training_experiment,
                                         evaluation_experiment=evaluation_experiment,
                                         variable=variable,
-                                        metric_name=metric_name)
+                                        metric_name=metric_name,
+                                        season=season)
 
         if not metric_path.exists():
             raise FileNotFoundError(f"Metric file not found: {metric_path}")
@@ -387,6 +461,22 @@ class Evaluator:
         digest = hashlib.sha256(selection_context.encode("utf-8")).hexdigest()
         return int(digest, 16) % n_members
 
+    @staticmethod
+    def _extract_failed_file_path(exc: Exception) -> str | None:
+        """Try to extract a path-like token from an exception message."""
+        message = str(exc)
+        quoted_matches = re.findall(r"['\"]([^'\"]+)['\"]", message)
+        for candidate in quoted_matches:
+            if "/" in candidate or "\\" in candidate:
+                return candidate
+
+        # Common format in this codebase: "... not found: /path/to/file.nc"
+        if ":" in message:
+            tail = message.rsplit(":", maxsplit=1)[-1].strip()
+            if "/" in tail or "\\" in tail:
+                return tail
+        return None
+
     def _compute_metric(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset,
                         variable: str, metric_name: str, metric_config: dict,
                         season: str | None = None) -> xr.Dataset:
@@ -442,15 +532,21 @@ class Evaluator:
                 / evaluation_experiment)
 
     def _metric_path(self, submission_name: str, domain: str, training_experiment: str,
-                     evaluation_experiment: str, variable: str, metric_name: str) -> Path:
+                     evaluation_experiment: str, variable: str, metric_name: str,
+                     season: str | None = None) -> Path:
         """Build file path for a metric NetCDF."""
         metric_dir = self._metric_dir(submission_name=submission_name,
                                       domain=domain,
                                       training_experiment=training_experiment,
                                       evaluation_experiment=evaluation_experiment,
                                       variable=variable)
-                                      
-        return metric_dir / f"metric_{metric_name}.nc"
+        if season is None:
+            return metric_dir / f"metric_{metric_name}.nc"
+
+        season_token = str(season).strip().lower()
+        if not season_token:
+            return metric_dir / f"metric_{metric_name}.nc"
+        return metric_dir / f"metric_{metric_name}_{season_token}.nc"
 
 
 def _load_metrics_registry(metrics_path: str | Path) -> dict:
