@@ -8,7 +8,6 @@
       "variable": "pr",
       "metrics": [
         {"name": "RMSE", "key": "rmse", "reduction": "mean"},
-        {"name": "CDD_bias", "key": "cdd_bias", "reduction": "abs_mean"},
         {"name": "SDII_ratio", "key": "sdii_ratio", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"}
       ]
@@ -21,53 +20,69 @@
       "metrics": [
         {"name": "RMSE", "key": "rmse", "reduction": "mean"},
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
-        {"name": "SU_bias", "key": "su_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"}
+      ]
+    }, "pr_emulator_hist_future_imperfect_interpolation": {
+      "description": "PR - (Emulator Hist-Future) Imperfect Interpolation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "SDII_ratio", "key": "sdii_ratio", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_emulator_hist_future_imperfect_interpolation": {
+      "description": "TASMAX - (Emulator Hist-Future) Imperfect Interpolation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"}
       ]
     }, "pr_emulator_hist_future_imperfect_interpolation_GCM_transferability": {
-      "description": "PR - (Emulator Hist-Future) Perfect Cross Validation",
+      "description": "PR - (Emulator Hist-Future) Imperfect Interpolation GCM Transferability",
       "training_experiment": "Emulator_hist_future",
       "evaluation_experiment": "Imperfect_interpolation_GCM_transferability",
       "variable": "pr",
       "metrics": [
         {"name": "RMSE", "key": "rmse", "reduction": "mean"},
-        {"name": "CDD_bias", "key": "cdd_bias", "reduction": "abs_mean"},
         {"name": "SDII_ratio", "key": "sdii_ratio", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"}
       ]
     },
     "tasmax_emulator_hist_future_imperfect_interpolation_GCM_transferability": {
-      "description": "TASMAX - (Emulator Hist-Future) Perfect Cross Validation",
+      "description": "TASMAX - (Emulator Hist-Future) Imperfect Interpolation GCM Transferability",
       "training_experiment": "Emulator_hist_future",
       "evaluation_experiment": "Imperfect_interpolation_GCM_transferability",
       "variable": "tasmax",
       "metrics": [
         {"name": "RMSE", "key": "rmse", "reduction": "mean"},
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
-        {"name": "SU_bias", "key": "su_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"}
       ]
-    }, "pr_esd_perfect_extrapolation": {
-      "description": "PR - (ESD Pseudo-Reality) Perfect Extrapolation",
-      "training_experiment": "ESD_pseudo_reality",
-      "evaluation_experiment": "Perfect_extrapolation",
+    }, "pr_emulator_hist_future_perfect_interpolation_GCM_transferability": {
+      "description": "PR - (Emulator Hist-Future) Perfect Interpolation GCM Transferability",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_interpolation_GCM_transferability",
       "variable": "pr",
       "metrics": [
         {"name": "RMSE", "key": "rmse", "reduction": "mean"},
-        {"name": "CDD_bias", "key": "cdd_bias", "reduction": "abs_mean"},
         {"name": "SDII_ratio", "key": "sdii_ratio", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"}
       ]
     },
-    "tasmax_esd_perfect_extrapolation": {
-      "description": "TASMAX - (ESD Pseudo-Reality) Perfect Extrapolation",
-      "training_experiment": "ESD_pseudo_reality",
-      "evaluation_experiment": "Perfect_extrapolation",
+    "tasmax_emulator_hist_future_perfect_interpolation_GCM_transferability": {
+      "description": "TASMAX - (Emulator Hist-Future) Perfect Interpolation GCM Transferability",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_interpolation_GCM_transferability",
       "variable": "tasmax",
       "metrics": [
         {"name": "RMSE", "key": "rmse", "reduction": "mean"},
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
-        {"name": "SU_bias", "key": "su_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"}
       ]
     }

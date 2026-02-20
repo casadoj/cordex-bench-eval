@@ -26,11 +26,14 @@ CONFIG_PATH = PROJECT_ROOT / "configs/config.json"
 METRICS_PATH = PROJECT_ROOT / "configs/metrics.json"
 
 # Edit these to control what gets computed
-SUBMISSION_NAMES = ["RCMGEM-mv-orog"] # ["FlowMatching-v1", "FlowMatching-v1-orog", "UiBCorrDiff-orog", "RCMGEM-mv-orog"]
+SUBMISSION_NAMES = ["DeepESD-IFCAv1-orog"] # FlowMatching-v1, FlowMatching-v1-orog, UiBCorrDiff-orog, RCMGEM-mv-orog
 DOMAINS = ["ALPS_Domain", "NZ_Domain", "SA_Domain"]
-TRAINING_EXPERIMENTS = ["ESD_pseudo_reality", "Emulator_hist_future"]
-EVALUATION_EXPERIMENTS = ["Perfect_extrapolation", "Perfect_cross_validation",
-                          "Imperfect_interpolation_GCM_transferability"]
+TRAINING_EXPERIMENTS = ["Emulator_hist_future"]
+EVALUATION_EXPERIMENTS = ["Perfect_cross_validation",
+                          "Perfect_interpolation",  
+                          "Imperfect_interpolation",
+                          "Imperfect_interpolation_GCM_transferability",
+                          "Perfect_interpolation_GCM_transferability"]
 VARIABLES = ["pr", "tasmax"]
 RECOMPUTE_EXISTING = False
 

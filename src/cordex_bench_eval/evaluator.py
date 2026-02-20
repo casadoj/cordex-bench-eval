@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
+import numpy as np
 import re
 from itertools import product
 from pathlib import Path
@@ -163,6 +164,10 @@ class Evaluator:
                     member_handling=member_handling,
                     selection_context=selection_context,
                 )
+                self._validate_metric_inputs(metric_pred_ds,
+                                             metric_gt_ds,
+                                             variable=variable,
+                                             context_label=selection_context)
 
                 metric_ds = self._compute_metric(pred_ds=metric_pred_ds, gt_ds=metric_gt_ds, variable=variable,
                                                  metric_name=metric_name, metric_config=metric_config,
@@ -392,6 +397,9 @@ class Evaluator:
                                  training_experiment: str, evaluation_experiment: str,
                                  variable: str, **open_kwargs: Any) -> tuple[xr.Dataset, xr.Dataset]:
         """Load prediction and ground truth datasets, aligned on coordinates."""
+        context_label = (
+            f"{submission_name}|{domain}|{training_experiment}|{evaluation_experiment}|{variable}"
+        )
         # Load prediction
         pred_ds = self.submission_loader.load_dataset(submission_name=submission_name,
                                                       domain=domain,
@@ -408,15 +416,15 @@ class Evaluator:
                                                 merge_mid_end=True,
                                                 **open_kwargs)
 
-        # Align on spatial coordinates first, then time
-        pred_ds, gt_ds = xr.align(pred_ds, gt_ds, join="inner", exclude=["time"])
-        pred_ds, gt_ds = xr.align(pred_ds, gt_ds, join="inner")
+        pred_ds, gt_ds = self._align_prediction_and_ground_truth(pred_ds=pred_ds,
+                                                                 gt_ds=gt_ds,
+                                                                 context_label=context_label)
 
         return pred_ds, gt_ds
 
     def _apply_member_handling_to_datasets(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset,
                                            member_handling: str, selection_context: str) -> tuple[xr.Dataset, xr.Dataset]:
-        """Apply member-dimension handling to prediction/ground-truth datasets."""
+        """Apply member-dimension handling to already-aligned datasets."""
         normalized = self._normalize_member_handling(member_handling)
         pred_processed = self._reduce_member_dim(pred_ds,
                                                  strategy=normalized,
@@ -424,9 +432,152 @@ class Evaluator:
         gt_processed = self._reduce_member_dim(gt_ds,
                                                strategy=normalized,
                                                selection_context=f"{selection_context}|gt")
-        pred_processed, gt_processed = xr.align(pred_processed, gt_processed, join="inner", exclude=["time"])
-        pred_processed, gt_processed = xr.align(pred_processed, gt_processed, join="inner")
+        # Datasets are aligned once in _load_and_align_datasets; reducing member does not
+        # change time/lat/lon coordinates, so re-aligning here is unnecessary overhead.
         return pred_processed, gt_processed
+
+    def _align_prediction_and_ground_truth(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset,
+                                           context_label: str) -> tuple[xr.Dataset, xr.Dataset]:
+        """Normalize and align prediction/ground-truth datasets with fast-path + fallback."""
+        pred_norm = self._normalize_alignment_coords(pred_ds)
+        gt_norm = self._normalize_alignment_coords(gt_ds)
+
+        # Fast path (close to original behavior): align directly and keep going when valid.
+        pred_fast, gt_fast = xr.align(pred_norm, gt_norm, join="inner", exclude=["time"])
+        pred_fast, gt_fast = xr.align(pred_fast, gt_fast, join="inner")
+        if self._is_valid_alignment(pred_fast, gt_fast):
+            return pred_fast, gt_fast
+
+        # Fallback path: explicit day-level matching for problematic calendar/encoding cases.
+        pred_aligned, gt_aligned = xr.align(pred_norm, gt_norm, join="inner", exclude=["time"])
+        pred_aligned, gt_aligned = self._align_common_time(pred_aligned, gt_aligned)
+        pred_aligned, gt_aligned = xr.align(pred_aligned, gt_aligned, join="inner")
+        self._validate_aligned_datasets(pred_aligned, gt_aligned, context_label=context_label)
+        return pred_aligned, gt_aligned
+
+    def _normalize_alignment_coords(self, ds: xr.Dataset) -> xr.Dataset:
+        """Normalize time and spatial coordinates to improve robust alignment."""
+        normalized = ds
+
+        for coord_name in ("lat", "latitude", "lon", "longitude"):
+            if coord_name in normalized.coords and coord_name in normalized.dims:
+                coord = normalized[coord_name]
+                if np.issubdtype(coord.dtype, np.number):
+                    normalized = normalized.assign_coords({coord_name: coord.round(6)})
+        return normalized
+
+    def _align_common_time(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset) -> tuple[xr.Dataset, xr.Dataset]:
+        """Align datasets on common calendar days while preserving datetime time coordinates."""
+        if "time" not in pred_ds.dims or "time" not in gt_ds.dims:
+            return pred_ds, gt_ds
+
+        pred_time_values = pred_ds["time"].values.tolist()
+        gt_time_values = gt_ds["time"].values.tolist()
+
+        pred_day_tokens = [self._to_day_token(value) for value in pred_time_values]
+        gt_day_tokens = [self._to_day_token(value) for value in gt_time_values]
+        gt_tokens_set = set(gt_day_tokens)
+
+        common_tokens: list[str] = []
+        pred_indices: list[int] = []
+        gt_first_index: dict[str, int] = {}
+        for idx, token in enumerate(gt_day_tokens):
+            gt_first_index.setdefault(token, idx)
+
+        seen_tokens: set[str] = set()
+        for idx, token in enumerate(pred_day_tokens):
+            if token in gt_tokens_set and token not in seen_tokens:
+                seen_tokens.add(token)
+                common_tokens.append(token)
+                pred_indices.append(idx)
+
+        if not common_tokens:
+            # Fallback: some files decode to different absolute calendars/origins but still
+            # represent the same daily sequence. If lengths match, align positionally.
+            pred_len = pred_ds.sizes["time"]
+            gt_len = gt_ds.sizes["time"]
+            if pred_len > 0 and pred_len == gt_len:
+                gt_canonical_tokens = [self._to_day_token(value) for value in gt_time_values]
+                canonical_time = np.array(gt_canonical_tokens, dtype="datetime64[D]")
+                pred_fallback = pred_ds.assign_coords(time=canonical_time)
+                gt_fallback = gt_ds.assign_coords(time=canonical_time)
+                return pred_fallback, gt_fallback
+            return pred_ds.isel(time=slice(0, 0)), gt_ds.isel(time=slice(0, 0))
+
+        gt_indices = [gt_first_index[token] for token in common_tokens]
+        pred_aligned = pred_ds.isel(time=pred_indices)
+        gt_aligned = gt_ds.isel(time=gt_indices)
+
+        canonical_time = np.array(common_tokens, dtype="datetime64[D]")
+        pred_aligned = pred_aligned.assign_coords(time=canonical_time)
+        gt_aligned = gt_aligned.assign_coords(time=canonical_time)
+        return pred_aligned, gt_aligned
+
+    @staticmethod
+    def _to_day_token(value: Any) -> str:
+        """Convert various datetime-like objects to a canonical YYYY-MM-DD token."""
+        if isinstance(value, np.datetime64):
+            return np.datetime_as_string(value, unit="D")
+        if hasattr(value, "strftime"):
+            return str(value.strftime("%Y-%m-%d"))
+        return str(value)[:10]
+
+    def _validate_aligned_datasets(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset, context_label: str) -> None:
+        """Validate aligned datasets before metric computation."""
+        if "time" in pred_ds.dims and pred_ds.sizes["time"] == 0:
+            raise ValueError(f"Empty time overlap after alignment for context '{context_label}' (prediction).")
+        if "time" in gt_ds.dims and gt_ds.sizes["time"] == 0:
+            raise ValueError(f"Empty time overlap after alignment for context '{context_label}' (ground truth).")
+
+        for dim_name in ("lat", "latitude", "lon", "longitude"):
+            if dim_name in pred_ds.dims and dim_name in gt_ds.dims:
+                pred_size = pred_ds.sizes[dim_name]
+                gt_size = gt_ds.sizes[dim_name]
+                if pred_size == 0 or gt_size == 0:
+                    raise ValueError(
+                        f"Empty spatial dimension '{dim_name}' after alignment for context '{context_label}' "
+                        f"(pred={pred_size}, gt={gt_size})."
+                    )
+                if pred_size != gt_size:
+                    raise ValueError(
+                        f"Mismatched spatial dimension '{dim_name}' after alignment for context '{context_label}' "
+                        f"(pred={pred_size}, gt={gt_size})."
+                    )
+
+    @staticmethod
+    def _is_valid_alignment(pred_ds: xr.Dataset, gt_ds: xr.Dataset) -> bool:
+        """Fast non-raising validity check for alignment results."""
+        if "time" in pred_ds.dims and pred_ds.sizes["time"] == 0:
+            return False
+        if "time" in gt_ds.dims and gt_ds.sizes["time"] == 0:
+            return False
+        for dim_name in ("lat", "latitude", "lon", "longitude"):
+            if dim_name in pred_ds.dims and dim_name in gt_ds.dims:
+                pred_size = pred_ds.sizes[dim_name]
+                gt_size = gt_ds.sizes[dim_name]
+                if pred_size == 0 or gt_size == 0 or pred_size != gt_size:
+                    return False
+        return True
+
+    def _validate_metric_inputs(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset,
+                                variable: str, context_label: str) -> None:
+        """Ensure metric inputs have non-empty time and consistent spatial dimensions."""
+        self._validate_aligned_datasets(pred_ds, gt_ds, context_label=context_label)
+
+        for ds_label, ds in (("prediction", pred_ds), ("ground_truth", gt_ds)):
+            if variable not in ds.data_vars:
+                raise KeyError(
+                    f"Variable '{variable}' not found in {ds_label} dataset for context '{context_label}'."
+                )
+            var_da = ds[variable]
+            for dim_name in ("lat", "latitude", "lon", "longitude"):
+                if dim_name in var_da.dims and dim_name in ds.dims:
+                    if var_da.sizes[dim_name] != ds.sizes[dim_name]:
+                        raise ValueError(
+                            f"Inconsistent dimension '{dim_name}' for variable '{variable}' in {ds_label} "
+                            f"dataset for context '{context_label}' "
+                            f"(variable={var_da.sizes[dim_name]}, dataset={ds.sizes[dim_name]})."
+                        )
 
     def _reduce_member_dim(self, ds: xr.Dataset, strategy: str, selection_context: str) -> xr.Dataset:
         """Reduce/select the member dimension when present."""
@@ -470,7 +621,6 @@ class Evaluator:
             if "/" in candidate or "\\" in candidate:
                 return candidate
 
-        # Common format in this codebase: "... not found: /path/to/file.nc"
         if ":" in message:
             tail = message.rsplit(":", maxsplit=1)[-1].strip()
             if "/" in tail or "\\" in tail:

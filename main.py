@@ -42,26 +42,26 @@ catalog = SubmissionCatalog(config.catalog_path)
 ########################################################################################
 
 ########################################################################################
-# # VALIDATE STAGED SUBMISSIONS
+# VALIDATE STAGED SUBMISSIONS
 
-# # Validate one submission by name:
-# report = SubmissionValidator(config=config, catalog=catalog).validate_submission("RCMGEM-mv-orog")
+# Validate one submission by name:
+report = SubmissionValidator(config=config, catalog=catalog).validate_submission("DeepESD-IFCAv1-orog")
 
-# print("Submission validation results:")
-# status = "VALID" if report.is_valid else "INVALID"
-# print(f"{report.submission_name}: {status} "
-#       f"(checked_files={report.checked_files}, missing_files={report.missing_files}, "
-#       f"errors={report.error_count}, warnings={report.warning_count})")
+print("Submission validation results:")
+status = "VALID" if report.is_valid else "INVALID"
+print(f"{report.submission_name}: {status} "
+      f"(checked_files={report.checked_files}, missing_files={report.missing_files}, "
+      f"errors={report.error_count}, warnings={report.warning_count})")
 
-# if report.missing_file_paths:
-#     print("Missing files:")
-#     for missing_path in report.missing_file_paths:
-#         print(f"  - {missing_path}")
+if report.missing_file_paths:
+    print("Missing files:")
+    for missing_path in report.missing_file_paths:
+        print(f"  - {missing_path}")
 
-# for issue in report.issues:
-#     if issue.code in {"MISSING_REQUIRED_FILE", "EXPECTED_FILE_NOT_A_FILE"}:
-#         continue
-#     print(f"  - [{issue.severity}] {issue.code}: {issue.message}")
+for issue in report.issues:
+    if issue.code in {"MISSING_REQUIRED_FILE", "EXPECTED_FILE_NOT_A_FILE"}:
+        continue
+    print(f"  - [{issue.severity}] {issue.code}: {issue.message}")
 ########################################################################################
 
 ########################################################################################
@@ -89,8 +89,8 @@ catalog = SubmissionCatalog(config.catalog_path)
 # # Select the specific submission to load
 # SUBMISSION_NAME = "FlowMatching-v1-orog"
 # TRAINING_EXPERIMENT = "Emulator_hist_future"
-# EVALUATION_EXPERIMENT = "Perfect_cross_validation"
-# DOMAIN = "NZ_Domain"
+# EVALUATION_EXPERIMENT = "Imperfect_interpolation_GCM_transferability"
+# DOMAIN = "SA_Domain"
 # VARIABLE = "pr"
 
 # # Create data loader
@@ -133,56 +133,56 @@ catalog = SubmissionCatalog(config.catalog_path)
 ########################################################################################
 
 ########################################################################################
-# RUN EVALUATION
+# # RUN EVALUATION
 
-# Evaluation settings
-SUBMISSION_NAMES = ["FlowMatching-v1-orog", "FlowMatching-v1", "UiBCorrDiff-orog", "ANN", "ANN-orog", "RCMGEM-mv-orog"]
-TRAINING_EXPERIMENTS = ["Emulator_hist_future"]
-EVALUATION_EXPERIMENTS = ["Perfect_cross_validation"]
-DOMAINS = ["ALPS_Domain", "NZ_Domain"]
-VARIABLE = "pr"
+# # Evaluation settings
+# SUBMISSION_NAMES = ["FlowMatching-v1-orog", "FlowMatching-v1", "UiBCorrDiff-orog", "ANN", "ANN-orog", "RCMGEM-mv-orog"]
+# TRAINING_EXPERIMENTS = ["Emulator_hist_future"]
+# EVALUATION_EXPERIMENTS = ["Perfect_cross_validation"]
+# DOMAINS = ["ALPS_Domain", "NZ_Domain"]
+# VARIABLE = "pr"
 
-# Set the evaluator
-evaluator = Evaluator(config=config, catalog=catalog, metrics_registry_path=METRICS_PATH,
-                      ml_benchmark_path=config.mlbenchmark_path)
+# # Set the evaluator
+# evaluator = Evaluator(config=config, catalog=catalog, metrics_registry_path=METRICS_PATH,
+#                       ml_benchmark_path=config.mlbenchmark_path)
 
-evaluation_report = evaluator.evaluate_multiple(submission_names=SUBMISSION_NAMES,
-                                                domain=DOMAINS,
-                                                training_experiment=TRAINING_EXPERIMENTS,
-                                                evaluation_experiment=EVALUATION_EXPERIMENTS,
-                                                variable=VARIABLE,
-                                                recompute_existing=False)
-print(f"Evaluation report by context: {evaluation_report}")
+# evaluation_report = evaluator.evaluate_multiple(submission_names=SUBMISSION_NAMES,
+#                                                 domain=DOMAINS,
+#                                                 training_experiment=TRAINING_EXPERIMENTS,
+#                                                 evaluation_experiment=EVALUATION_EXPERIMENTS,
+#                                                 variable=VARIABLE,
+#                                                 recompute_existing=False)
+# print(f"Evaluation report by context: {evaluation_report}")
 
-# List saved metric files
-metric_files_by_submission = {
-    f"{name}|{domain_name}|{training_name}|{evaluation_name}|{VARIABLE}": evaluator.available_metric_files(
-        submission_name=name,
-        domain=domain_name,
-        training_experiment=training_name,
-        evaluation_experiment=evaluation_name,
-        variable=VARIABLE,
-    )
-    for name in SUBMISSION_NAMES
-    for domain_name in DOMAINS
-    for training_name in TRAINING_EXPERIMENTS
-    for evaluation_name in EVALUATION_EXPERIMENTS
-}
-print(f"Saved metric files by submission: {metric_files_by_submission}")
+# # List saved metric files
+# metric_files_by_submission = {
+#     f"{name}|{domain_name}|{training_name}|{evaluation_name}|{VARIABLE}": evaluator.available_metric_files(
+#         submission_name=name,
+#         domain=domain_name,
+#         training_experiment=training_name,
+#         evaluation_experiment=evaluation_name,
+#         variable=VARIABLE,
+#     )
+#     for name in SUBMISSION_NAMES
+#     for domain_name in DOMAINS
+#     for training_name in TRAINING_EXPERIMENTS
+#     for evaluation_name in EVALUATION_EXPERIMENTS
+# }
+# print(f"Saved metric files by submission: {metric_files_by_submission}")
 
-# Load a specific metric
-metric_submission = SUBMISSION_NAMES[0]
-metric_domain = DOMAINS[0]
-metric_training = TRAINING_EXPERIMENTS[0]
-metric_evaluation = EVALUATION_EXPERIMENTS[0]
-metric_to_load = "sdii_ratio"
-metric_ds = evaluator.load_metric(submission_name=metric_submission,
-                                  domain=metric_domain,
-                                  training_experiment=metric_training,
-                                  evaluation_experiment=metric_evaluation,
-                                  variable=VARIABLE,
-                                  metric_name=metric_to_load)
-print(f"{metric_to_load} result for {metric_submission} ({metric_domain}, {VARIABLE}): {metric_ds}")
+# # Load a specific metric
+# metric_submission = SUBMISSION_NAMES[0]
+# metric_domain = DOMAINS[0]
+# metric_training = TRAINING_EXPERIMENTS[0]
+# metric_evaluation = EVALUATION_EXPERIMENTS[0]
+# metric_to_load = "sdii_ratio"
+# metric_ds = evaluator.load_metric(submission_name=metric_submission,
+#                                   domain=metric_domain,
+#                                   training_experiment=metric_training,
+#                                   evaluation_experiment=metric_evaluation,
+#                                   variable=VARIABLE,
+#                                   metric_name=metric_to_load)
+# print(f"{metric_to_load} result for {metric_submission} ({metric_domain}, {VARIABLE}): {metric_ds}")
 ########################################################################################
 
 ########################################################################################
