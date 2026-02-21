@@ -1,9 +1,9 @@
 {
   "defaults": {
     "figsize": [12, 10],
-    "dpi": 150,
+    "dpi": 500,
     "predictions_per_row": 3,
-    "format": "pdf",
+    "format": "png",
     "output_dir": "figures_output",
     "ground_truth_label": "Ground Truth",
     "colorbar_label": "Value",
@@ -218,7 +218,7 @@
       "evaluation_experiment": "Perfect_interpolation_GCM_transferability",
       "variable": "tasmax",
       "target_date": "2048-05-15",
-      "colorbar_label": "Daily maximum temperature (°C)",
+      "colorbar_label": "Daily maximum temperature (K)",
       "colorbar": {
           "colormap": "Plasma",
           "levels": 20,
@@ -233,7 +233,7 @@
       "evaluation_experiment": "Imperfect_interpolation_GCM_transferability",
       "variable": "tasmax",
       "target_date": "2048-05-15",
-      "colorbar_label": "Daily maximum temperature (°C)",
+      "colorbar_label": "Daily maximum temperature (K)",
       "colorbar": {
           "colormap": "Plasma",
           "levels": 20,

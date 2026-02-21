@@ -54,40 +54,40 @@ def main():
                         'FlowMatching-v1', 'FlowMatching-v1-orog',
                         'UiBCorrDiff-orog', 'RCMGEM-mv-orog']
 
-    print("Generating tables...")
-    table_gen = TableGenerator(config=config,
-                               catalog=catalog,
-                               table_config_path=str(TABLES_CONFIG_PATH))
-    table_names = ["pr_emulator_hist_future_perfect_cross_validation",
-                   "tasmax_emulator_hist_future_perfect_cross_validation",
-                   "pr_emulator_hist_future_imperfect_interpolation",
-                   "tasmax_emulator_hist_future_imperfect_interpolation",
-                   "pr_emulator_hist_future_imperfect_interpolation_GCM_transferability",
-                   "tasmax_emulator_hist_future_imperfect_interpolation_GCM_transferability",
-                   "pr_emulator_hist_future_perfect_interpolation_GCM_transferability",
-                   "tasmax_emulator_hist_future_perfect_interpolation_GCM_transferability"]
-    for name in table_names:
-        df = table_gen.generate_table(table_name=name,
-                                      submission_names=submission_names,
-                                      domains=DOMAINS,
-                                      include_average=True)
-        for fmt in ("csv", "html"):
-            out = TABLES_DIR / f"{name}.{fmt}"
-            table_gen.export_table(df=df, output_path=str(out), format=fmt)
-        print(f"  {name} → {TABLES_DIR}/")
+    # print("Generating tables...")
+    # table_gen = TableGenerator(config=config,
+    #                            catalog=catalog,
+    #                            table_config_path=str(TABLES_CONFIG_PATH))
+    # table_names = ["pr_emulator_hist_future_perfect_cross_validation",
+    #                "tasmax_emulator_hist_future_perfect_cross_validation",
+    #                "pr_emulator_hist_future_imperfect_interpolation",
+    #                "tasmax_emulator_hist_future_imperfect_interpolation",
+    #                "pr_emulator_hist_future_imperfect_interpolation_GCM_transferability",
+    #                "tasmax_emulator_hist_future_imperfect_interpolation_GCM_transferability",
+    #                "pr_emulator_hist_future_perfect_interpolation_GCM_transferability",
+    #                "tasmax_emulator_hist_future_perfect_interpolation_GCM_transferability"]
+    # for name in table_names:
+    #     df = table_gen.generate_table(table_name=name,
+    #                                   submission_names=submission_names,
+    #                                   domains=DOMAINS,
+    #                                   include_average=True)
+    #     for fmt in ("csv", "html"):
+    #         out = TABLES_DIR / f"{name}.{fmt}"
+    #         table_gen.export_table(df=df, output_path=str(out), format=fmt)
+    #     print(f"  {name} → {TABLES_DIR}/")
 
-    # print("Generating figures (daily snapshots)...")
-    # figure_gen = FigureGenerator(config=config,
-    #                              catalog=catalog,
-    #                              figure_config_path=str(FIGURES_CONFIG_PATH))
-    # figure_names = ["sa_tasmax_emulator_hist_future_perfect_interpolation_GCM_transferability_1",
-    #                 "sa_tasmax_emulator_hist_future_imperfect_interpolation_GCM_transferability_1"]
+    print("Generating figures (daily snapshots)...")
+    figure_gen = FigureGenerator(config=config,
+                                 catalog=catalog,
+                                 figure_config_path=str(FIGURES_CONFIG_PATH))
+    figure_names = ["sa_tasmax_emulator_hist_future_perfect_interpolation_GCM_transferability_1",
+                    "sa_tasmax_emulator_hist_future_imperfect_interpolation_GCM_transferability_1"]
 
-    # for name in figure_names:
-    #     figure_gen.generate_figure(figure_name=name,
-    #                                submission_names=submission_names,
-    #                                output_dir=str(FIGURES_DIR))
-    #     print(f"  {name}")
+    for name in figure_names:
+        figure_gen.generate_figure(figure_name=name,
+                                   submission_names=submission_names,
+                                   output_dir=str(FIGURES_DIR))
+        print(f"  {name}")
 
     # print("Generating diagnostic figures (spatial maps)...")
     # evaluator = Evaluator(config=config,
