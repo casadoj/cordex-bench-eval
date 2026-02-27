@@ -52,7 +52,9 @@ def main():
     # Override submissions if needed (e.g. subset for meeting)
     submission_names = ['DeepESD-IFCAv1', 'DeepESD-IFCAv1-orog',
                         'FlowMatching-v1', 'FlowMatching-v1-orog',
-                        'UiBCorrDiff-orog', 'RCMGEM-mv-orog']
+                        'UiBCorrDiff-orog', 'RCMGEM-mv-orog',
+                        'CorrDiff-TW1_NTNU-CWA', 'CorrDiff-TW1_NTNU-CWA-orog',
+                        'Prithvi-UNet', 'Prithvi-UNet-orog']
 
     # print("Generating tables...")
     # table_gen = TableGenerator(config=config,
@@ -80,8 +82,9 @@ def main():
     figure_gen = FigureGenerator(config=config,
                                  catalog=catalog,
                                  figure_config_path=str(FIGURES_CONFIG_PATH))
-    figure_names = ["sa_tasmax_emulator_hist_future_perfect_interpolation_GCM_transferability_1",
-                    "sa_tasmax_emulator_hist_future_imperfect_interpolation_GCM_transferability_1"]
+    figure_names = ["sa_pr_emulator_hist_future_perfect_cross_validation_1",
+                    "alps_pr_emulator_hist_future_perfect_cross_validation_1",
+                    "nz_pr_emulator_hist_future_perfect_cross_validation_1"]
 
     for name in figure_names:
         figure_gen.generate_figure(figure_name=name,

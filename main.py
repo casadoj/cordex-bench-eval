@@ -45,7 +45,7 @@ catalog = SubmissionCatalog(config.catalog_path)
 # VALIDATE STAGED SUBMISSIONS
 
 # Validate one submission by name:
-report = SubmissionValidator(config=config, catalog=catalog).validate_submission("DeepESD-IFCAv1-orog")
+report = SubmissionValidator(config=config, catalog=catalog).validate_submission("Prithvi-UNet-orog")
 
 print("Submission validation results:")
 status = "VALID" if report.is_valid else "INVALID"
