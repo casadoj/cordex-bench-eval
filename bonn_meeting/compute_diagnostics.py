@@ -26,7 +26,7 @@ CONFIG_PATH = PROJECT_ROOT / "configs/config.json"
 METRICS_PATH = PROJECT_ROOT / "configs/metrics.json"
 
 # Edit these to control what gets computed
-SUBMISSION_NAMES = ["CorrDiff-TW1_NTNU-CWA-orog"]
+SUBMISSION_NAMES = ["Prithvi-UNet-orog"]
 TRAINING_EXPERIMENTS = ["Emulator_hist_future"]
 EVALUATION_EXPERIMENTS = ["Perfect_cross_validation",
                           "Perfect_interpolation",  

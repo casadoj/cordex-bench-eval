@@ -54,7 +54,8 @@ def main():
                         'FlowMatching-v1', 'FlowMatching-v1-orog',
                         'UiBCorrDiff-orog', 'RCMGEM-mv-orog',
                         'CorrDiff-TW1_NTNU-CWA', 'CorrDiff-TW1_NTNU-CWA-orog',
-                        'Prithvi-UNet', 'Prithvi-UNet-orog']
+                        'Prithvi-UNet', 'Prithvi-UNet-orog',
+                        'XGBoost_IDL_v1']
 
     # print("Generating tables...")
     # table_gen = TableGenerator(config=config,

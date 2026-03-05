@@ -10,6 +10,7 @@ Validation coverage includes:
 - file naming convention checks,
 - lightweight NetCDF readability/corruption probes,
 - required variables (`pr`, `tasmax`) and dimensions (`time` + spatial axes),
+- time coverage against filename date ranges,
 - reporting of explicit missing file paths.
 """
 
@@ -19,6 +20,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Sequence
 
+import numpy as np
+import pandas as pd
 import xarray as xr
 
 from .catalog import SubmissionCatalog
@@ -360,6 +363,7 @@ class SubmissionValidator:
                                                       report=report,
                                                       domain=expected.domain)
 
+                self._validate_time_coverage(ds=ds, path=path, expected=expected, report=report)
                 self._validate_file_naming(path=path, expected=expected, report=report)
         except Exception as exc:
             self._add_issue(report=report,
@@ -465,6 +469,57 @@ class SubmissionValidator:
                             ),
                             context={"file": str(path), "variable": variable,
                                      "lat_dim": lat_dim, "lon_dim": lon_dim})
+
+    def _validate_time_coverage(self, ds: xr.Dataset, path: Path,
+                                expected: _ExpectedFile,
+                                report: SubmissionValidationReport) -> None:
+        """Check that all years in the expected date range are present in the time coordinate."""
+        if self._TIME_DIM not in ds or ds[self._TIME_DIM].size == 0:
+            return
+
+        time_var = ds[self._TIME_DIM]
+        try:
+            units = time_var.attrs.get("units", "")
+            calendar = time_var.attrs.get("calendar", "standard")
+            decoded = xr.coding.times.decode_cf_datetime(
+                time_var.values, units, calendar
+            )
+        except Exception:
+            return
+
+        start_year, end_year = int(expected.date_tag[:4]), int(expected.date_tag[5:9])
+        expected_years = set(range(start_year, end_year + 1))
+        if isinstance(decoded, np.ndarray) and np.issubdtype(decoded.dtype, np.datetime64):
+            actual_years = set(pd.DatetimeIndex(decoded).year)
+        else:
+            actual_years = {int(v.year) for v in decoded}
+        missing = sorted(expected_years - actual_years)
+        extra = sorted(actual_years - expected_years)
+
+        if missing:
+            self._add_issue(
+                report=report, severity="ERROR",
+                code="INCOMPLETE_TIME_COVERAGE",
+                message=(
+                    f"Time coordinate is missing years implied by the filename date "
+                    f"range {expected.date_tag}: {missing} (in file: {path})."
+                ),
+                context={"file": str(path),
+                         "expected_range": expected.date_tag,
+                         "missing_years": str(missing)},
+            )
+        if extra:
+            self._add_issue(
+                report=report, severity="WARNING",
+                code="UNEXPECTED_TIME_COVERAGE",
+                message=(
+                    f"Time coordinate contains years outside the filename date "
+                    f"range {expected.date_tag}: {extra} (in file: {path})."
+                ),
+                context={"file": str(path),
+                         "expected_range": expected.date_tag,
+                         "extra_years": str(extra)},
+            )
 
     @staticmethod
     def _resolve_path_case_insensitive(root_path: Path, expected_relative_path: Path,

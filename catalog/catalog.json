@@ -107,6 +107,15 @@
       "extra": {
         "uses_orography": "true"
       }
+    },
+    {
+      "name": "XGBoost_IDL_v1",
+      "location": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/staging/XGBoost_IDL_v1",
+      "created_at": "2026-02-11T09:12:35.975640+00:00",
+      "status": "staged",
+      "extra": {
+        "uses_orography": "false"
+      }
     }
   ]
 }
