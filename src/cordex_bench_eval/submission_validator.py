@@ -140,6 +140,7 @@ class SubmissionValidator:
 
     _REQUIRED_VARIABLES = ("pr", "tasmax")
     _TIME_DIM = "time"
+    _TIME_COVERAGE_BOUNDARY_TOLERANCE = 1
 
     def __init__(self, config: SubmissionWorkflowConfig, catalog: SubmissionCatalog | None = None):
         self.config = config
@@ -253,16 +254,14 @@ class SubmissionValidator:
                                                    training_experiments=training_experiments,
                                                    evaluation_experiments=evaluation_experiments)
         for expected in expected_files:
-            full_path = submission_path / expected.relative_path
-            resolved_path = self._resolve_path_case_insensitive(root_path=submission_path,
-                                                                expected_relative_path=expected.relative_path)
+            resolved_path = submission_path / expected.relative_path
             if not resolved_path.exists():
                 report.missing_files += 1
                 self._add_issue(report=report,
                                 severity="ERROR",
                                 code="MISSING_REQUIRED_FILE",
                                 message="Required prediction file is missing.",
-                                context={"file": str(full_path),
+                                context={"file": str(resolved_path),
                                          "domain": expected.domain,
                                          "training_experiment": expected.training_experiment,
                                          "evaluation_experiment": expected.evaluation_experiment})
@@ -493,8 +492,15 @@ class SubmissionValidator:
             actual_years = set(pd.DatetimeIndex(decoded).year)
         else:
             actual_years = {int(v.year) for v in decoded}
-        missing = sorted(expected_years - actual_years)
+        all_missing = expected_years - actual_years
         extra = sorted(actual_years - expected_years)
+        actual_sorted = sorted(actual_years)
+
+        tolerated_start = set(range(start_year, start_year + self._TIME_COVERAGE_BOUNDARY_TOLERANCE))
+        tolerated_end = set(range(end_year - self._TIME_COVERAGE_BOUNDARY_TOLERANCE + 1, end_year + 1))
+        tolerated_boundary = tolerated_start | tolerated_end
+        tolerated = sorted(all_missing & tolerated_boundary)
+        missing = sorted(all_missing - tolerated_boundary)
 
         if missing:
             self._add_issue(
@@ -502,11 +508,28 @@ class SubmissionValidator:
                 code="INCOMPLETE_TIME_COVERAGE",
                 message=(
                     f"Time coordinate is missing years implied by the filename date "
-                    f"range {expected.date_tag}: {missing} (in file: {path})."
+                    f"range {expected.date_tag}: {missing}. "
+                    f"File contains years: {actual_sorted} (in file: {path})."
                 ),
                 context={"file": str(path),
                          "expected_range": expected.date_tag,
-                         "missing_years": str(missing)},
+                         "missing_years": str(missing),
+                         "actual_years": str(actual_sorted)},
+            )
+        if tolerated:
+            self._add_issue(
+                report=report, severity="WARNING",
+                code="TOLERATED_BOUNDARY_YEAR_OFFSET",
+                message=(
+                    f"Time coordinate is missing boundary year(s) of the filename date "
+                    f"range {expected.date_tag}: {tolerated}. This is within the allowed "
+                    f"boundary tolerance. "
+                    f"File contains years: {actual_sorted} (in file: {path})."
+                ),
+                context={"file": str(path),
+                         "expected_range": expected.date_tag,
+                         "tolerated_years": str(tolerated),
+                         "actual_years": str(actual_sorted)},
             )
         if extra:
             self._add_issue(
@@ -514,62 +537,14 @@ class SubmissionValidator:
                 code="UNEXPECTED_TIME_COVERAGE",
                 message=(
                     f"Time coordinate contains years outside the filename date "
-                    f"range {expected.date_tag}: {extra} (in file: {path})."
+                    f"range {expected.date_tag}: {extra}. "
+                    f"File contains years: {actual_sorted} (in file: {path})."
                 ),
                 context={"file": str(path),
                          "expected_range": expected.date_tag,
-                         "extra_years": str(extra)},
+                         "extra_years": str(extra),
+                         "actual_years": str(actual_sorted)},
             )
-
-    @staticmethod
-    def _resolve_path_case_insensitive(root_path: Path, expected_relative_path: Path,
-                                       ) -> Path:
-        """
-        Resolve an expected path with case-insensitive segment matching.
-
-        Also handles archives extracted with an extra single wrapper directory.
-        """
-        expected_path = root_path / expected_relative_path
-        if expected_path.exists():
-            return expected_path
-
-        resolved = SubmissionValidator._resolve_relative_path_case_insensitive(
-            start_dir=root_path, relative_path=expected_relative_path
-        )
-        if resolved is not None:
-            return resolved
-
-        child_dirs = sorted(
-            (entry for entry in root_path.iterdir() if entry.is_dir()),
-            key=lambda value: value.name.lower(),
-        )
-        if len(child_dirs) == 1:
-            wrapped_resolved = SubmissionValidator._resolve_relative_path_case_insensitive(
-                start_dir=child_dirs[0], relative_path=expected_relative_path
-            )
-            if wrapped_resolved is not None:
-                return wrapped_resolved
-
-        return expected_path
-
-    @staticmethod
-    def _resolve_relative_path_case_insensitive(start_dir: Path, relative_path: Path) -> Path | None:
-        """Resolve relative path by matching each segment case-insensitively."""
-        current = start_dir
-        for segment in relative_path.parts:
-            exact = current / segment
-            if exact.exists():
-                current = exact
-                continue
-
-            if not current.is_dir():
-                return None
-            lowered_segment = segment.casefold()
-            matches = [entry for entry in current.iterdir() if entry.name.casefold() == lowered_segment]
-            if not matches:
-                return None
-            current = sorted(matches, key=lambda value: value.name.casefold())[0]
-        return current
 
     @staticmethod
     def _add_issue(report: SubmissionValidationReport, severity: str, code: str,

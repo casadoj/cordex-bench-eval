@@ -55,7 +55,11 @@ def main():
                         'UiBCorrDiff-orog', 'RCMGEM-mv-orog',
                         'CorrDiff-TW1_NTNU-CWA', 'CorrDiff-TW1_NTNU-CWA-orog',
                         'Prithvi-UNet', 'Prithvi-UNet-orog',
-                        'XGBoost_IDL_v1']
+                        'deepsensor_orog_bas',
+                        'ResGAN', 'ResGAN-orog',
+                        'CNRM-UNeT',
+                        'Rossby-UNet', 'Rossby-UNet-orog',
+                        'EnScale', 'EnScale-orog', 'EnScale-linex']
 
     # print("Generating tables...")
     # table_gen = TableGenerator(config=config,
