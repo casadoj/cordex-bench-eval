@@ -42,26 +42,26 @@ catalog = SubmissionCatalog(config.catalog_path)
 ########################################################################################
 
 ########################################################################################
-# # VALIDATE STAGED SUBMISSIONS
+# VALIDATE STAGED SUBMISSIONS
 
-# # Validate one submission by name:
-# report = SubmissionValidator(config=config, catalog=catalog).validate_submission("Rossby-UNet-orog")
+# Validate one submission by name:
+report = SubmissionValidator(config=config, catalog=catalog).validate_submission("spaGAN_orog")
 
-# print("Submission validation results:")
-# status = "VALID" if report.is_valid else "INVALID"
-# print(f"{report.submission_name}: {status} "
-#       f"(checked_files={report.checked_files}, missing_files={report.missing_files}, "
-#       f"errors={report.error_count}, warnings={report.warning_count})")
+print("Submission validation results:")
+status = "VALID" if report.is_valid else "INVALID"
+print(f"{report.submission_name}: {status} "
+      f"(checked_files={report.checked_files}, missing_files={report.missing_files}, "
+      f"errors={report.error_count}, warnings={report.warning_count})")
 
-# if report.missing_file_paths:
-#     print("Missing files:")
-#     for missing_path in report.missing_file_paths:
-#         print(f"  - {missing_path}")
+if report.missing_file_paths:
+    print("Missing files:")
+    for missing_path in report.missing_file_paths:
+        print(f"  - {missing_path}")
 
-# for issue in report.issues:
-#     if issue.code in {"MISSING_REQUIRED_FILE", "EXPECTED_FILE_NOT_A_FILE"}:
-#         continue
-#     print(f"  - [{issue.severity}] {issue.code}: {issue.message}")
+for issue in report.issues:
+    if issue.code in {"MISSING_REQUIRED_FILE", "EXPECTED_FILE_NOT_A_FILE"}:
+        continue
+    print(f"  - [{issue.severity}] {issue.code}: {issue.message}")
 ########################################################################################
 
 ########################################################################################
@@ -84,31 +84,31 @@ catalog = SubmissionCatalog(config.catalog_path)
 ########################################################################################
 
 ########################################################################################
-# LOAD A SPECIFIC SUBMISSION
+# # LOAD A SPECIFIC SUBMISSION
 
-# Select the specific submission to load
-SUBMISSION_NAME = "DeepESD-IFCAv1"
-TRAINING_EXPERIMENT = "Emulator_hist_future"
-EVALUATION_EXPERIMENT = "Imperfect_interpolation_GCM_transferability"
-DOMAIN = "ALPS_Domain"
-VARIABLE = "pr"
+# # Select the specific submission to load
+# SUBMISSION_NAME = "DeepESD-IFCAv1"
+# TRAINING_EXPERIMENT = "Emulator_hist_future"
+# EVALUATION_EXPERIMENT = "Imperfect_interpolation_GCM_transferability"
+# DOMAIN = "ALPS_Domain"
+# VARIABLE = "pr"
 
-# Create data loader
-loader = SubmissionDataLoader(catalog)
+# # Create data loader
+# loader = SubmissionDataLoader(catalog)
 
-# Explore available data
-print(f"Available data for {SUBMISSION_NAME}:")
-print(f"Domains: {loader.available_domains(SUBMISSION_NAME)}")
-print(f"Experiments in {DOMAIN}: {loader.available_experiments(SUBMISSION_NAME, DOMAIN)}")
-print(f"Periods in {TRAINING_EXPERIMENT}: {loader.available_periods(SUBMISSION_NAME, DOMAIN, TRAINING_EXPERIMENT)}")
+# # Explore available data
+# print(f"Available data for {SUBMISSION_NAME}:")
+# print(f"Domains: {loader.available_domains(SUBMISSION_NAME)}")
+# print(f"Experiments in {DOMAIN}: {loader.available_experiments(SUBMISSION_NAME, DOMAIN)}")
+# print(f"Periods in {TRAINING_EXPERIMENT}: {loader.available_periods(SUBMISSION_NAME, DOMAIN, TRAINING_EXPERIMENT)}")
 
-# Load the prediction dataset
-prediction_ds = loader.load_dataset(submission_name=SUBMISSION_NAME,
-                                    domain=DOMAIN,
-                                    training_experiment=TRAINING_EXPERIMENT,
-                                    evaluation_experiment=EVALUATION_EXPERIMENT,
-                                    variable=VARIABLE)
-print(f"Prediction dataset: {prediction_ds}")
+# # Load the prediction dataset
+# prediction_ds = loader.load_dataset(submission_name=SUBMISSION_NAME,
+#                                     domain=DOMAIN,
+#                                     training_experiment=TRAINING_EXPERIMENT,
+#                                     evaluation_experiment=EVALUATION_EXPERIMENT,
+#                                     variable=VARIABLE)
+# print(f"Prediction dataset: {prediction_ds}")
 ########################################################################################
 
 ########################################################################################
