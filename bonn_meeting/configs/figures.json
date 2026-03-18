@@ -1,8 +1,12 @@
 {
   "defaults": {
-    "figsize": [12, 10],
+    "figsize": [8, 10],
     "dpi": 500,
-    "predictions_per_row": 3,
+    "predictions_per_row": 5,
+    "subplot_hspace": 0.3,
+    "subplot_wspace": 0.015,
+    "subplot_title_fontsize": 8,
+    "figure_title_fontsize": 14,
     "format": "png",
     "output_dir": "figures_output",
     "ground_truth_label": "Ground Truth",

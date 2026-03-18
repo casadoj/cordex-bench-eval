@@ -54,14 +54,16 @@ def main():
                         'FlowMatching-v1', 'FlowMatching-v1-orog',
                         'UiBCorrDiff-orog', 'RCMGEM-mv-orog',
                         'CorrDiff-TW1_NTNU-CWA', 'CorrDiff-TW1_NTNU-CWA-orog',
-                        # 'Prithvi-UNet', 'Prithvi-UNet-orog',
-                        'XGBoost_IDL_v2', 'DeepESD_IDL_v2',
-                        'deepsensor_orog_bas',
+                        'Prithvi-UNet', 'Prithvi-UNet-orog',
+                        'XGBoost_IDL', 'DeepESD_IDL',
+                        'deepsensor_bas', 'deepsensor_orog_bas',
                         'ResGAN', 'ResGAN-orog',
                         'CNRM-UNeT',
                         'Rossby-UNet', 'Rossby-UNet-orog',
-                        'EnScale-orog', 'EnScale-linex',
-                        'spaGAN', 'spaGAN_orog']
+                        'EnScale', 'EnScale-orog', 'EnScale-linex',
+                        'spaGAN', 'spaGAN_orog',
+                        'DetUNet', 'DetUNet_orog',
+                        'ParamUNET']
 
     # print("Generating tables...")
     # table_gen = TableGenerator(config=config,

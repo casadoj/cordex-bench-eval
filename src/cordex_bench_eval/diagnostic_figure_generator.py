@@ -176,6 +176,8 @@ class DiagnosticFigureGenerator:
         figsize = tuple(plot_settings.get("figsize", (12, 8)))
         dpi = plot_settings.get("dpi", 150)
         plots_per_row = max(1, int(plot_settings.get("plots_per_row", 3)))
+        subplot_title_fontsize = plot_settings.get("subplot_title_fontsize")
+        figure_title_fontsize = plot_settings.get("figure_title_fontsize")
 
         # Define the projection (NZ needs central_longitude=180)
         domain_key = domain.replace("_Domain", "").upper()
@@ -205,7 +207,7 @@ class DiagnosticFigureGenerator:
                                 norm=norm)
             spatial_mean = self._compute_spatial_mean(data_array)
             title = f"{submission}\n(mean: {spatial_mean:.3f})"
-            ax.set_title(title)
+            ax.set_title(title, fontsize=subplot_title_fontsize)
             diagnostic_axes.append(ax)
 
         # Add colorbar
@@ -230,9 +232,9 @@ class DiagnosticFigureGenerator:
         # Add title
         title = plot_settings.get("title")
         if title:
-            fig.suptitle(title, y=0.98)
+            fig.suptitle(title, y=0.98, fontsize=figure_title_fontsize)
         else:
-            fig.suptitle(f"{metric} - {variable}", y=0.98)
+            fig.suptitle(f"{metric} - {variable}", y=0.98, fontsize=figure_title_fontsize)
 
         fig.savefig(output_path, bbox_inches="tight")
         plt.close(fig)

@@ -213,6 +213,10 @@ class FigureGenerator:
         figsize = tuple(plot_settings.get("figsize", (12, 10)))
         dpi = plot_settings.get("dpi", 150)
         preds_per_row = max(1, int(plot_settings.get("predictions_per_row", 3)))
+        subplot_hspace = float(plot_settings.get("subplot_hspace", 0.15))
+        subplot_wspace = float(plot_settings.get("subplot_wspace", 0.05))
+        subplot_title_fontsize = plot_settings.get("subplot_title_fontsize")
+        figure_title_fontsize = plot_settings.get("figure_title_fontsize")
 
         # Define the projection (NZ needs central_longitude=180)
         domain_key = domain.replace("_Domain", "").upper()
@@ -222,7 +226,9 @@ class FigureGenerator:
         fig = plt.figure(figsize=figsize, dpi=dpi)
         n_cols = preds_per_row
         n_rows = math.ceil(len(predictions) / n_cols)
-        gs = fig.add_gridspec(n_rows + 1, n_cols, hspace=0.15, wspace=0.05)
+        gs = fig.add_gridspec(n_rows + 1, n_cols,
+                              hspace=subplot_hspace,
+                              wspace=subplot_wspace)
 
         # Prepare shared colorbar
         cmap, norm, levels = self._build_colormap(ground_truth, plot_settings)
@@ -237,7 +243,7 @@ class FigureGenerator:
                              cmap=cmap,
                              norm=norm)
         gt_label = plot_settings.get("ground_truth_label", "Ground Truth")
-        gt_ax.set_title(gt_label)
+        gt_ax.set_title(gt_label, fontsize=subplot_title_fontsize)
 
         # Hide unused top-row axes
         for col in range(n_cols):
@@ -255,7 +261,7 @@ class FigureGenerator:
                                  data_array=data_array,
                                  cmap=cmap,
                                  norm=norm)
-            ax.set_title(submission)
+            ax.set_title(submission, fontsize=subplot_title_fontsize)
             prediction_axes.append(ax)
 
         axes_for_colorbar = [gt_ax] + prediction_axes
@@ -276,10 +282,12 @@ class FigureGenerator:
 
         title = plot_settings.get("title")
         if title:
-            fig.suptitle(title, y=0.98)
+            fig.suptitle(title, y=0.98, fontsize=figure_title_fontsize)
         else:
             formatted_date = np.datetime_as_string(target_date, unit="D")
-            fig.suptitle(f"{variable} snapshot - {formatted_date}", y=0.98)
+            fig.suptitle(f"{variable} snapshot - {formatted_date}",
+                         y=0.98,
+                         fontsize=figure_title_fontsize)
 
         fig.savefig(output_path, bbox_inches="tight")
         plt.close(fig)

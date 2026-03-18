@@ -3,6 +3,8 @@
     "figsize": [12, 8],
     "dpi": 150,
     "plots_per_row": 3,
+    "subplot_title_fontsize": 10,
+    "figure_title_fontsize": 14,
     "format": "pdf",
     "output_dir": "diagnostic_figures_output",
     "colorbar_orientation": "horizontal",
