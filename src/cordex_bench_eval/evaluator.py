@@ -14,7 +14,7 @@ import numpy as np
 import re
 from itertools import product
 from pathlib import Path
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Set
 
 import xarray as xr
 
@@ -98,6 +98,8 @@ class Evaluator:
         """
         if metrics is None:
             metrics = self.metrics_registry.get("defaults", {}).get(variable, [])
+        vars_needed = self._variables_needed_for_metrics(metrics, variable)
+        load_variable: str | None = None if len(vars_needed) > 1 else variable
         total_metrics = len(metrics)
         context_label = (
             f"{submission_name}|{domain}|{training_experiment}|{evaluation_experiment}|{variable}"
@@ -144,7 +146,8 @@ class Evaluator:
                                                                    domain=domain,
                                                                    training_experiment=training_experiment,
                                                                    evaluation_experiment=evaluation_experiment,
-                                                                   variable=variable,
+                                                                   context_variable=variable,
+                                                                   load_variable=load_variable,
                                                                    **open_kwargs)
                     print(f"[Evaluator] Datasets loaded and aligned for {context_label}")
 
@@ -167,6 +170,7 @@ class Evaluator:
                 self._validate_metric_inputs(metric_pred_ds,
                                              metric_gt_ds,
                                              variable=variable,
+                                             metric_config=metric_config,
                                              context_label=selection_context)
 
                 metric_ds = self._compute_metric(pred_ds=metric_pred_ds, gt_ds=metric_gt_ds, variable=variable,
@@ -393,26 +397,53 @@ class Evaluator:
 
         return xr.open_dataset(metric_path, **open_kwargs)
 
+    def _variables_needed_for_metrics(self, metrics: List[str], context_variable: str) -> Set[str]:
+        """Union of the context variable and any variables required by multivariable metrics."""
+        needed: Set[str] = {context_variable}
+        registry = self.metrics_registry.get("metrics", {})
+        for name in metrics:
+            cfg = registry.get(name, {})
+            if cfg.get("type") == "bias_multivariable_correlation":
+                if "var_x" not in cfg or "var_y" not in cfg:
+                    raise ValueError(
+                        f"Metric '{name}' of type 'bias_multivariable_correlation' "
+                        "requires 'var_x' and 'var_y'."
+                    )
+                needed.add(cfg["var_x"])
+                needed.add(cfg["var_y"])
+        return needed
+
     def _load_and_align_datasets(self, submission_name: str, domain: str,
                                  training_experiment: str, evaluation_experiment: str,
-                                 variable: str, **open_kwargs: Any) -> tuple[xr.Dataset, xr.Dataset]:
-        """Load prediction and ground truth datasets, aligned on coordinates."""
+                                 context_variable: str,
+                                 load_variable: str | None,
+                                 **open_kwargs: Any) -> tuple[xr.Dataset, xr.Dataset]:
+        """Load prediction and ground truth datasets, aligned on coordinates.
+
+        Parameters
+        ----------
+        context_variable
+            Evaluation context variable (used in log labels and paths elsewhere).
+        load_variable
+            Variable name passed to loaders, or ``None`` to load all variables in the
+            file (e.g. both ``pr`` and ``tasmax`` when a multivariable metric is requested).
+        """
         context_label = (
-            f"{submission_name}|{domain}|{training_experiment}|{evaluation_experiment}|{variable}"
+            f"{submission_name}|{domain}|{training_experiment}|{evaluation_experiment}|{context_variable}"
         )
         # Load prediction
         pred_ds = self.submission_loader.load_dataset(submission_name=submission_name,
                                                       domain=domain,
                                                       training_experiment=training_experiment,
                                                       evaluation_experiment=evaluation_experiment,
-                                                      variable=variable,
+                                                      variable=load_variable,
                                                       **open_kwargs)
 
         # Load ground truth
         gt_ds = self.gt_loader.load_test_target(domain=domain,
                                                 training_experiment=training_experiment,
                                                 evaluation_experiment=evaluation_experiment,
-                                                variable=variable,
+                                                variable=load_variable,
                                                 merge_mid_end=True,
                                                 **open_kwargs)
 
@@ -560,24 +591,39 @@ class Evaluator:
         return True
 
     def _validate_metric_inputs(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset,
-                                variable: str, context_label: str) -> None:
+                                variable: str, metric_config: dict,
+                                context_label: str) -> None:
         """Ensure metric inputs have non-empty time and consistent spatial dimensions."""
         self._validate_aligned_datasets(pred_ds, gt_ds, context_label=context_label)
 
-        for ds_label, ds in (("prediction", pred_ds), ("ground_truth", gt_ds)):
-            if variable not in ds.data_vars:
-                raise KeyError(
-                    f"Variable '{variable}' not found in {ds_label} dataset for context '{context_label}'."
-                )
-            var_da = ds[variable]
-            for dim_name in ("lat", "latitude", "lon", "longitude"):
-                if dim_name in var_da.dims and dim_name in ds.dims:
-                    if var_da.sizes[dim_name] != ds.sizes[dim_name]:
-                        raise ValueError(
-                            f"Inconsistent dimension '{dim_name}' for variable '{variable}' in {ds_label} "
-                            f"dataset for context '{context_label}' "
-                            f"(variable={var_da.sizes[dim_name]}, dataset={ds.sizes[dim_name]})."
-                        )
+        mtype = metric_config.get("type")
+        if mtype == "bias_multivariable_correlation":
+            try:
+                vars_to_check = [metric_config["var_x"], metric_config["var_y"]]
+            except KeyError as exc:
+                raise ValueError(
+                    "Metric type 'bias_multivariable_correlation' requires "
+                    "'var_x' and 'var_y' in the metric configuration."
+                ) from exc
+        else:
+            vars_to_check = [variable]
+
+        for check_var in vars_to_check:
+            for ds_label, ds in (("prediction", pred_ds), ("ground_truth", gt_ds)):
+                if check_var not in ds.data_vars:
+                    raise KeyError(
+                        f"Variable '{check_var}' not found in {ds_label} dataset "
+                        f"for context '{context_label}'."
+                    )
+                var_da = ds[check_var]
+                for dim_name in ("lat", "latitude", "lon", "longitude"):
+                    if dim_name in var_da.dims and dim_name in ds.dims:
+                        if var_da.sizes[dim_name] != ds.sizes[dim_name]:
+                            raise ValueError(
+                                f"Inconsistent dimension '{dim_name}' for variable '{check_var}' "
+                                f"in {ds_label} dataset for context '{context_label}' "
+                                f"(variable={var_da.sizes[dim_name]}, dataset={ds.sizes[dim_name]})."
+                            )
 
     def _reduce_member_dim(self, ds: xr.Dataset, strategy: str, selection_context: str) -> xr.Dataset:
         """Reduce/select the member dimension when present."""
@@ -665,6 +711,23 @@ class Evaluator:
             return diagnostics.ratio_index(x0=gt_ds, x1=pred_ds,
                                           index_fn=index_fn, season=season,
                                           **index_kwargs)
+
+        elif metric_type == "bias_multivariable_correlation":
+            try:
+                var_x = metric_config["var_x"]
+                var_y = metric_config["var_y"]
+            except KeyError as exc:
+                raise ValueError(
+                    "Metric type 'bias_multivariable_correlation' requires "
+                    "'var_x' and 'var_y' in the metric configuration."
+                ) from exc
+            return diagnostics.bias_multivariable_correlation(
+                x0=gt_ds,
+                x1=pred_ds,
+                var_x=var_x,
+                var_y=var_y,
+                season=season,
+            )
 
         else:
             raise ValueError(f"Unknown metric type: {metric_type}")

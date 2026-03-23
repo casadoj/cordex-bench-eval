@@ -63,7 +63,8 @@ def main():
                         'EnScale', 'EnScale-orog', 'EnScale-linex',
                         'spaGAN', 'spaGAN_orog',
                         'DetUNet', 'DetUNet_orog',
-                        'ParamUNET']
+                        'ParamUNET',
+                        'DeepESDcrps_IFCAv2', 'DeepESDcrps_IFCAv2-orog']
 
     # print("Generating tables...")
     # table_gen = TableGenerator(config=config,

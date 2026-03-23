@@ -26,8 +26,8 @@
         "wet_threshold": 1.0
       }
     },
-    "sdii_ratio": {
-      "type": "ratio_index",
+    "sdii_bias": {
+      "type": "bias_index",
       "index_fn": "evaluation.indices.sdii",
       "member_handling": "random",
       "kwargs": {
@@ -70,11 +70,17 @@
       "type": "bias_index",
       "index_fn": "evaluation.indices.interannual_var",
       "member_handling": "random"
+    },
+    "pr_tasmax_corr_bias": {
+      "type": "bias_multivariable_correlation",
+      "var_x": "pr",
+      "var_y": "tasmax",
+      "member_handling": "random"
     }
   },
   "defaults": {
-    "pr": ["rmse", "cdd_bias", "sdii_ratio", "rx1day_bias"],
-    "tasmax": ["rmse", "mean_bias", "txx_bias", "su_bias"]
+    "pr": ["rmse", "mean_bias", "sdii_bias", "rx1day_bias", "lag1_corr_bias", "psd", "pr_tasmax_corr_bias"],
+    "tasmax": ["rmse", "mean_bias", "txx_bias", "interannual_var_bias", "lag1_corr_bias", "psd", "pr_tasmax_corr_bias"]
   }
 }
 

@@ -264,6 +264,12 @@ Defines available metrics and defaults per variable:
   "metrics": {
     "rmse": { "type": "rmse" },
     "cdd_bias": { "type": "bias_index", "index_fn": "evaluation.indices.cdd" },
+    "pr_tasmax_corr_bias": {
+      "type": "bias_multivariable_correlation",
+      "var_x": "pr",
+      "var_y": "tasmax",
+      "member_handling": "mean"
+    },
     ...
   },
   "defaults": {
@@ -272,6 +278,8 @@ Defines available metrics and defaults per variable:
   }
 }
 ```
+
+`bias_multivariable_correlation` calls `evaluation.diagnostics.bias_multivariable_correlation`: time-wise correlation between `var_x` and `var_y` on ground truth vs prediction, and stores `correlation_x0`, `correlation_x1`, and `correlation_bias`. If any requested metric needs more than one variable, prediction and ground-truth loaders use both variables from the NetCDF files (`variable=None`).
 
 ### `configs/tables.json`
 

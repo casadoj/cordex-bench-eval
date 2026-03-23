@@ -393,6 +393,10 @@ class TableGenerator:
             if reduction_fn == "abs_mean":
                 return row_values
             return row_values.abs()
+        if metric_type == "bias_multivariable_correlation":
+            if reduction_fn == "abs_mean":
+                return row_values
+            return row_values.abs()
         if metric_type == "ratio_index":
             return (row_values - 1.0).abs()
 
