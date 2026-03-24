@@ -1,0 +1,360 @@
+{
+  "metrics_registry_path": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/configs/metrics.json",
+  "default_domains": ["ALPS_Domain", "NZ_Domain", "SA_Domain"],
+  "table_groups": {
+    "core_pr": [
+      "pr_emulator_hist_future_perfect_cross_validation",
+      "pr_emulator_hist_future_imperfect_interpolation"
+    ],
+    "core_tasmax": [
+      "tasmax_emulator_hist_future_perfect_cross_validation",
+      "tasmax_emulator_hist_future_imperfect_interpolation"
+    ],
+    "all_core": [
+      "pr_emulator_hist_future_perfect_cross_validation",
+      "tasmax_emulator_hist_future_perfect_cross_validation",
+      "pr_emulator_hist_future_imperfect_interpolation",
+      "tasmax_emulator_hist_future_imperfect_interpolation"
+    ],
+    "esd_pr": [
+      "pr_esd_pseudo_reality_perfect_cross_validation",
+      "pr_esd_pseudo_reality_imperfect_cross_validation",
+      "pr_esd_pseudo_reality_perfect_extrapolation",
+      "pr_esd_pseudo_reality_imperfect_extrapolation",
+      "pr_esd_pseudo_reality_perfect_extrapolation_gcm_transferability"
+    ],
+    "esd_tasmax": [
+      "tasmax_esd_pseudo_reality_perfect_cross_validation",
+      "tasmax_esd_pseudo_reality_imperfect_cross_validation",
+      "tasmax_esd_pseudo_reality_perfect_extrapolation",
+      "tasmax_esd_pseudo_reality_imperfect_extrapolation",
+      "tasmax_esd_pseudo_reality_perfect_extrapolation_gcm_transferability"
+    ],
+    "emulator_pr": [
+      "pr_emulator_hist_future_perfect_cross_validation",
+      "pr_emulator_hist_future_imperfect_cross_validation",
+      "pr_emulator_hist_future_perfect_interpolation",
+      "pr_emulator_hist_future_imperfect_interpolation",
+      "pr_emulator_hist_future_perfect_interpolation_gcm_transferability",
+      "pr_emulator_hist_future_imperfect_interpolation_gcm_transferability"
+    ],
+    "emulator_tasmax": [
+      "tasmax_emulator_hist_future_perfect_cross_validation",
+      "tasmax_emulator_hist_future_imperfect_cross_validation",
+      "tasmax_emulator_hist_future_perfect_interpolation",
+      "tasmax_emulator_hist_future_imperfect_interpolation",
+      "tasmax_emulator_hist_future_perfect_interpolation_gcm_transferability",
+      "tasmax_emulator_hist_future_imperfect_interpolation_gcm_transferability"
+    ]
+  },
+  "tables": {
+    "pr_esd_pseudo_reality_perfect_cross_validation": {
+      "description": "PR - (ESD pseudo-reality) Perfect Cross Validation",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "pr_esd_pseudo_reality_imperfect_cross_validation": {
+      "description": "PR - (ESD pseudo-reality) Imperfect Cross Validation",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Imperfect_cross_validation",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "pr_esd_pseudo_reality_perfect_extrapolation": {
+      "description": "PR - (ESD pseudo-reality) Perfect Extrapolation",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_extrapolation",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "pr_esd_pseudo_reality_imperfect_extrapolation": {
+      "description": "PR - (ESD pseudo-reality) Imperfect Extrapolation",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Imperfect_extrapolation",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "pr_esd_pseudo_reality_perfect_extrapolation_gcm_transferability": {
+      "description": "PR - (ESD pseudo-reality) Perfect Extrapolation GCM Transferability",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_extrapolation_GCM_transferability",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_esd_pseudo_reality_perfect_cross_validation": {
+      "description": "TASMAX - (ESD pseudo-reality) Perfect Cross Validation",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_esd_pseudo_reality_imperfect_cross_validation": {
+      "description": "TASMAX - (ESD pseudo-reality) Imperfect Cross Validation",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Imperfect_cross_validation",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_esd_pseudo_reality_perfect_extrapolation": {
+      "description": "TASMAX - (ESD pseudo-reality) Perfect Extrapolation",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_extrapolation",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_esd_pseudo_reality_imperfect_extrapolation": {
+      "description": "TASMAX - (ESD pseudo-reality) Imperfect Extrapolation",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Imperfect_extrapolation",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_esd_pseudo_reality_perfect_extrapolation_gcm_transferability": {
+      "description": "TASMAX - (ESD pseudo-reality) Perfect Extrapolation GCM Transferability",
+      "training_experiment": "ESD_pseudo_reality",
+      "evaluation_experiment": "Perfect_extrapolation_GCM_transferability",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "pr_emulator_hist_future_perfect_cross_validation": {
+      "description": "PR - (Emulator Hist-Future) Perfect Cross Validation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "pr_emulator_hist_future_imperfect_cross_validation": {
+      "description": "PR - (Emulator Hist-Future) Imperfect Cross Validation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_cross_validation",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "pr_emulator_hist_future_perfect_interpolation": {
+      "description": "PR - (Emulator Hist-Future) Perfect Interpolation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_interpolation",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "pr_emulator_hist_future_imperfect_interpolation": {
+      "description": "PR - (Emulator Hist-Future) Imperfect Interpolation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "pr_emulator_hist_future_perfect_interpolation_gcm_transferability": {
+      "description": "PR - (Emulator Hist-Future) Perfect Interpolation GCM Transferability",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_interpolation_GCM_transferability",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "pr_emulator_hist_future_imperfect_interpolation_gcm_transferability": {
+      "description": "PR - (Emulator Hist-Future) Imperfect Interpolation GCM Transferability",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation_GCM_transferability",
+      "variable": "pr",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
+        {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_emulator_hist_future_perfect_cross_validation": {
+      "description": "TASMAX - (Emulator Hist-Future) Perfect Cross Validation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_emulator_hist_future_imperfect_cross_validation": {
+      "description": "TASMAX - (Emulator Hist-Future) Imperfect Cross Validation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_cross_validation",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_emulator_hist_future_perfect_interpolation": {
+      "description": "TASMAX - (Emulator Hist-Future) Perfect Interpolation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_interpolation",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_emulator_hist_future_imperfect_interpolation": {
+      "description": "TASMAX - (Emulator Hist-Future) Imperfect Interpolation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_emulator_hist_future_perfect_interpolation_gcm_transferability": {
+      "description": "TASMAX - (Emulator Hist-Future) Perfect Interpolation GCM Transferability",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_interpolation_GCM_transferability",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    },
+    "tasmax_emulator_hist_future_imperfect_interpolation_gcm_transferability": {
+      "description": "TASMAX - (Emulator Hist-Future) Imperfect Interpolation GCM Transferability",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Imperfect_interpolation_GCM_transferability",
+      "variable": "tasmax",
+      "metrics": [
+        {"name": "RMSE", "key": "rmse", "reduction": "mean"},
+        {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
+        {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
+        {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
+        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+      ]
+    }
+  }
+}

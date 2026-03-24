@@ -40,7 +40,7 @@ EVALUATION_EXPERIMENTS = [
 RECOMPUTE_EXISTING = False
 
 # Model to compute diagnostics for
-model_to_evaluate = "Prithvi-UNet"
+model_to_evaluate = "DeepESD_IDL"
 
 ########################################################################################
 # LOAD CONFIGURATION AND CATALOG

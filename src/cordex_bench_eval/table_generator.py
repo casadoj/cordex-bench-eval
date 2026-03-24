@@ -284,13 +284,16 @@ class TableGenerator:
                                         metric_name=metric_key)
         
         # Extract the primary variable
-        # Most metrics have a single data variable
         data_vars = list(ds.data_vars)
         if len(data_vars) == 0:
             raise ValueError(f"No data variables in metric: {metric_key}")
-        
-        # Use first data variable (or look for specific names)
-        var_name = data_vars[0]
+
+        # bias_multivariable_correlation saves correlation_x0, correlation_x1, correlation_bias.
+        # Using the first var would pick correlation_x0 (ground truth only) identical for all models.
+        if "correlation_bias" in ds.data_vars:
+            var_name = "correlation_bias"
+        else:
+            var_name = data_vars[0]
         data_array = ds[var_name]
         
         # Apply reduction function
