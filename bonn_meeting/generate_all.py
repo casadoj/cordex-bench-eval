@@ -61,10 +61,13 @@ def main():
                         'CNRM-UNeT',
                         'Rossby-UNet', 'Rossby-UNet-orog',
                         'EnScale', 'EnScale-orog', 'EnScale-linex',
-                        'spaGAN', 'spaGAN_orog',
-                        'DetUNet', 'DetUNet_orog',
+                        'spaGAN', 'spaGAN-orog',
+                        'DetUNet', 'DetUNet-orog',
                         'ParamUNET',
-                        'DeepESDcrps_IFCAv2', 'DeepESDcrps_IFCAv2-orog']
+                        'DeepESDcrps_IFCAv2', 'DeepESDcrps_IFCAv2-orog',
+                        'ViT-IFCAv1', 'ViT-IFCAv1-orog',
+                        'ResGAN-v2', 'ResGAN-v2-orog',
+                        'DetUNet-v2', 'DetUNet-v2-orog']
 
     # print("Generating tables...")
     # table_gen = TableGenerator(config=config,

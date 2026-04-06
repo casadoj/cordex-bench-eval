@@ -34,6 +34,9 @@ FigureGenerator
 
 DiagnosticFigureGenerator
     Creates spatial maps of computed diagnostics for multiple submissions.
+
+PsdFigureGenerator
+    Creates log-log PSD comparison plots across domains for multiple submissions.
 """
 
 from .catalog import CatalogEntry, SubmissionCatalog
@@ -42,6 +45,7 @@ from .data_loader import GroundTruthDataLoader, SubmissionDataLoader
 from .diagnostic_figure_generator import DiagnosticFigureGenerator
 from .evaluator import Evaluator
 from .figure_generator import FigureGenerator
+from .psd_figure_generator import PsdFigureGenerator
 from .submission_handler import SubmissionHandler
 from .submission_validator import SubmissionValidator
 from .table_generator import TableGenerator
@@ -64,5 +68,6 @@ __all__ = [# Configuration
            # Figures
            "FigureGenerator",
            "DiagnosticFigureGenerator",
+           "PsdFigureGenerator",
            # Table generation
            "TableGenerator"]

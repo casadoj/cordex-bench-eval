@@ -389,6 +389,38 @@ Defines diagnostic figure specifications for spatial maps of computed metrics:
 Each diagnostic figure specification defines the scenario (domain, experiments, variable),
 the metric to visualize, and any overrides for the plotting defaults.
 
+### `configs/psd_figures.json`
+
+Defines PSD figure specifications for log-log power spectral density comparison plots:
+
+```json
+{
+  "defaults": {
+    "figsize": [18, 5],
+    "dpi": 150,
+    "format": "pdf",
+    "output_dir": "psd_figures_output",
+    "ground_truth_label": "Ground Truth",
+    "ground_truth_linewidth": 2.5,
+    "submission_linewidth": 1.2,
+    "xlabel": "Wavenumber",
+    "ylabel": "Power"
+  },
+  "figures": {
+    "pr_emulator_perfect_cv_psd": {
+      "description": "PSD comparison for PR - Emulator Perfect Cross Validation.",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "domains": ["ALPS_Domain", "NZ_Domain", "SA_Domain"]
+    }
+  }
+}
+```
+
+Each PSD figure specification defines the scenario (experiments, variable) and a list of
+domains to compare side-by-side. The number of subplots matches the number of domains.
+
 ## Examples of Figure and Table generations
 
 An example of figure and tables generation is included in `./figs` and `./tables`
@@ -402,7 +434,8 @@ cordex-bench-eval/
 │   ├── metrics.json            # Metrics definitions
 │   ├── tables.json             # Table specifications
 │   ├── figures.json            # Daily figure specifications
-│   └── diagnostic_figures.json # Diagnostic figure specifications
+│   ├── diagnostic_figures.json # Diagnostic figure specifications
+│   └── psd_figures.json       # PSD figure specifications
 ├── catalog/
 │   └── catalog.json            # Registry of ingested submissions
 ├── data/
@@ -419,6 +452,7 @@ cordex-bench-eval/
 │   ├── evaluator.py                  # Metrics computation
 │   ├── table_generator.py            # Table generation
 │   ├── figure_generator.py           # Daily figure generation
-│   └── diagnostic_figure_generator.py # Diagnostic figure generation
+│   ├── diagnostic_figure_generator.py # Diagnostic figure generation
+│   └── psd_figure_generator.py       # PSD figure generation
 └── main.py                       # Complete workflow
 ```

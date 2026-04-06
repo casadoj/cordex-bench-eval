@@ -1,0 +1,33 @@
+{
+  "defaults": {
+    "figsize": [18, 5],
+    "dpi": 150,
+    "format": "pdf",
+    "output_dir": "psd_figures_output",
+    "figure_title_fontsize": 14,
+    "subplot_title_fontsize": 12,
+    "legend_fontsize": 8,
+    "axis_label_fontsize": 11,
+    "ground_truth_label": "Ground Truth",
+    "ground_truth_linewidth": 2.5,
+    "submission_linewidth": 1.2,
+    "xlabel": "Wavenumber",
+    "ylabel": "Power"
+  },
+  "figures": {
+    "pr_emulator_perfect_cv_psd": {
+      "description": "PSD comparison for PR - Emulator Perfect Cross Validation.",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "pr",
+      "domains": ["ALPS_Domain", "NZ_Domain", "SA_Domain"]
+    },
+    "tasmax_emulator_perfect_cv_psd": {
+      "description": "PSD comparison for TASMAX - Emulator Perfect Cross Validation.",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_cross_validation",
+      "variable": "tasmax",
+      "domains": ["ALPS_Domain", "NZ_Domain", "SA_Domain"]
+    }
+  }
+}

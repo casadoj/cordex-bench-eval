@@ -37,10 +37,10 @@ EVALUATION_EXPERIMENTS = [
 ]
 
 # Set to True to recompute metrics even if they already exist
-RECOMPUTE_EXISTING = False
+RECOMPUTE_EXISTING = True
 
 # Model to compute diagnostics for
-model_to_evaluate = "DeepESD_IDL"
+model_to_evaluate = "DetUNet-v2-orog"
 
 ########################################################################################
 # LOAD CONFIGURATION AND CATALOG

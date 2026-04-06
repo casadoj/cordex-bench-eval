@@ -18,11 +18,22 @@ TABLES_DIR = ROOT / "output"
 DOMAINS = ["ALPS_Domain", "NZ_Domain", "SA_Domain"]
 
 # Submissions to include (set to None to use all entries from the catalog)
-submission_names = ['CorrDiff-TW1_NTNU-CWA', 'CorrDiff-TW1_NTNU-CWA-orog',
+submission_names = ['DeepESD-IFCAv1', 'DeepESD-IFCAv1-orog',
+                    'DeepESDcrps_IFCAv2', 'DeepESDcrps_IFCAv2-orog',
+                    'ViT-IFCAv1', 'ViT-IFCAv1-orog',
+                    'FlowMatching-v1', 'FlowMatching-v1-orog',
+                    'UiBCorrDiff-orog', 'RCMGEM-mv-orog',
+                    'CorrDiff-TW1_NTNU-CWA', 'CorrDiff-TW1_NTNU-CWA-orog',
                     'Prithvi-UNet', 'Prithvi-UNet-orog',
-                    'ANN', 'ANN-orog',
-                    'UiBCorrDiff-orog',
-                    'XGBoost_IDL', 'DeepESD_IDL']
+                    'XGBoost_IDL', 'DeepESD_IDL',
+                    'deepsensor_bas', 'deepsensor_orog_bas',
+                    'ResGAN', 'ResGAN-orog',
+                    'CNRM-UNeT',
+                    'Rossby-UNet', 'Rossby-UNet-orog',
+                    'EnScale', 'EnScale-orog', 'EnScale-linex',
+                    'spaGAN', 'spaGAN-orog',
+                    'DetUNet', 'DetUNet-orog',
+                    'ParamUNET']
 
 # Export formats: any of "csv", "html", "latex"
 FORMATS = ("html",)

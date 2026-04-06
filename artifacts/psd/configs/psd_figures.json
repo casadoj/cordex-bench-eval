@@ -1,0 +1,33 @@
+{
+  "defaults": {
+    "figsize": [18, 5],
+    "dpi": 150,
+    "format": "pdf",
+    "output_dir": "figs",
+    "figure_title_fontsize": 14,
+    "subplot_title_fontsize": 12,
+    "legend_fontsize": 8,
+    "axis_label_fontsize": 11,
+    "ground_truth_label": "Ground Truth",
+    "ground_truth_linewidth": 1.5,
+    "submission_linewidth": 1.5,
+    "xlabel": "Wavenumber",
+    "ylabel": "Power"
+  },
+  "figures": {
+    "pr_emulator_hist_future_perfect_interpolation": {
+      "description": "PSD comparison for PR - Emulator hist-future Perfect Interpolation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_interpolation",
+      "variable": "pr",
+      "domains": ["ALPS_Domain", "NZ_Domain", "SA_Domain"]
+    },
+    "tasmax_emulator_hist_future_perfect_interpolation": {
+      "description": "PSD comparison for TASMAX - Emulator hist-future Perfect Interpolation",
+      "training_experiment": "Emulator_hist_future",
+      "evaluation_experiment": "Perfect_interpolation",
+      "variable": "tasmax",
+      "domains": ["ALPS_Domain", "NZ_Domain", "SA_Domain"]
+    }
+  }
+}
