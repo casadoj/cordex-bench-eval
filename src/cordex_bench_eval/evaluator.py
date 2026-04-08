@@ -696,6 +696,12 @@ class Evaluator:
                                              var=variable, season=season)
             return xr.Dataset({"PSD_x0": psd_x0, "PSD_x1": psd_x1})
 
+        elif metric_type == "ralsd":
+            psd_x0, psd_x1 = diagnostics.psd(x0=gt_ds, x1=pred_ds,
+                                              var=variable, season=season)
+            ralsd_value = diagnostics.ralsd(psd_x0, psd_x1)
+            return xr.Dataset({"RALSD": xr.DataArray(ralsd_value)})
+
         elif metric_type == "bias_index":
             index_fn = _import_function(metric_config["index_fn"])
             index_kwargs = metric_config.get("kwargs", {}).copy()

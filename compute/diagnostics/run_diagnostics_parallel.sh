@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# "DeepESD-IFCAv1"
+# "DeepESD-IFCAv1-orog"
+# "DeepESDcrps_IFCAv2"
+# "DeepESDcrps_IFCAv2-orog"
+# "ViT-IFCAv1"
+# "ViT-IFCAv1-orog"
+# "FlowMatching-v1"
+# "FlowMatching-v1-orog"
+# "UiBCorrDiff-orog"
+# "RCMGEM-mv-orog"
+# "CorrDiff-TW1_NTNU-CWA"
+# "CorrDiff-TW1_NTNU-CWA-orog"
+# "Prithvi-UNet"
+# "Prithvi-UNet-orog"
+# "XGBoost_IDL"
+# "DeepESD_IDL"
+# "deepsensor_bas"
+# "deepsensor_orog_bas"
+# "ResGAN"
+# "ResGAN-orog"
+# "CNRM-UNeT"
+# "Rossby-UNet"
+# "Rossby-UNet-orog"
+# "EnScale"
+# "EnScale-orog"
+# "EnScale-linex"
+# "spaGAN"
+# "spaGAN-orog"
+# "DetUNet"
+# "DetUNet-orog"
+# "ParamUNET"
+# "ResGAN-v2"
+# "ResGAN-v2-orog"
+# "DetUNet-v2"
+# "DetUNet-v2-orog"
+# "ANN"
+# "ANN-orog"
+
+MODELS=(
+    "DetUNet"
+    "DetUNet-orog"
+    "ParamUNET"
+    "ResGAN-v2"
+    "ResGAN-v2-orog"
+    "DetUNet-v2"
+    "DetUNet-v2-orog"
+    "ANN"
+    "ANN-orog"
+)
+
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_SCRIPT="$SCRIPT_DIR/compute_diagnostics.py"
+
+for model in "${MODELS[@]}"; do
+    echo "Running: $model"
+    sed "s/^model_to_evaluate = .*/model_to_evaluate = \"${model}\"/" "$PYTHON_SCRIPT" \
+        > "$SCRIPT_DIR/.temp_${model}.py"
+    python "$SCRIPT_DIR/.temp_${model}.py"
+    rm "$SCRIPT_DIR/.temp_${model}.py"
+done
+
+echo "Done"

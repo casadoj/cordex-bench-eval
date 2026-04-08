@@ -37,10 +37,10 @@ EVALUATION_EXPERIMENTS = [
 ]
 
 # Set to True to recompute metrics even if they already exist
-RECOMPUTE_EXISTING = True
+RECOMPUTE_EXISTING = False
 
 # Model to compute diagnostics for
-model_to_evaluate = "DetUNet-v2-orog"
+model_to_evaluate = "RCMGEM-mv-orog"
 
 ########################################################################################
 # LOAD CONFIGURATION AND CATALOG

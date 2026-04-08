@@ -392,6 +392,8 @@ class TableGenerator:
         """Convert row values to comparable scores (lower score is better)."""
         if metric_type == "rmse":
             return row_values
+        if metric_type == "ralsd":
+            return row_values
         if metric_type == "bias_index":
             if reduction_fn == "abs_mean":
                 return row_values

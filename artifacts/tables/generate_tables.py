@@ -22,6 +22,7 @@ submission_names = ['DeepESD-IFCAv1', 'DeepESD-IFCAv1-orog',
                     'DeepESDcrps_IFCAv2', 'DeepESDcrps_IFCAv2-orog',
                     'ViT-IFCAv1', 'ViT-IFCAv1-orog',
                     'FlowMatching-v1', 'FlowMatching-v1-orog',
+                    'ANN', 'ANN-orog',
                     'UiBCorrDiff-orog', 'RCMGEM-mv-orog',
                     'CorrDiff-TW1_NTNU-CWA', 'CorrDiff-TW1_NTNU-CWA-orog',
                     'Prithvi-UNet', 'Prithvi-UNet-orog',
@@ -33,7 +34,9 @@ submission_names = ['DeepESD-IFCAv1', 'DeepESD-IFCAv1-orog',
                     'EnScale', 'EnScale-orog', 'EnScale-linex',
                     'spaGAN', 'spaGAN-orog',
                     'DetUNet', 'DetUNet-orog',
-                    'ParamUNET']
+                    'ParamUNET',
+                    'ResGAN-v2', 'ResGAN-v2-orog',
+                    'DetUNet-v2', 'DetUNet-v2-orog']
 
 # Export formats: any of "csv", "html", "latex"
 FORMATS = ("html",)

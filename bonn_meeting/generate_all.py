@@ -52,6 +52,7 @@ def main():
     # Override submissions if needed (e.g. subset for meeting)
     submission_names = ['DeepESD-IFCAv1', 'DeepESD-IFCAv1-orog',
                         'FlowMatching-v1', 'FlowMatching-v1-orog',
+                        'ANN', 'ANN-orog',
                         'UiBCorrDiff-orog', 'RCMGEM-mv-orog',
                         'CorrDiff-TW1_NTNU-CWA', 'CorrDiff-TW1_NTNU-CWA-orog',
                         'Prithvi-UNet', 'Prithvi-UNet-orog',

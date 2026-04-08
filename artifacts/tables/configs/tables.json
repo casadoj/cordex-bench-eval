@@ -59,6 +59,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -73,6 +74,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -87,6 +89,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -101,6 +104,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -115,6 +119,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -129,6 +134,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -143,6 +149,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -157,6 +164,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -171,6 +179,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -185,6 +194,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -199,6 +209,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -213,6 +224,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -227,6 +239,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -241,6 +254,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -255,6 +269,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -269,6 +284,7 @@
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -283,6 +299,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -297,6 +314,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -311,6 +329,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -325,6 +344,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -339,6 +359,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     },
@@ -353,6 +374,7 @@
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
         {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
         {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
       ]
     }
