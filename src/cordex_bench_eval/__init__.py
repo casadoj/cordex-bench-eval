@@ -46,6 +46,7 @@ from .diagnostic_figure_generator import DiagnosticFigureGenerator
 from .evaluator import Evaluator
 from .figure_generator import FigureGenerator
 from .psd_figure_generator import PsdFigureGenerator
+from .scorecard_generator import ScorecardGenerator
 from .submission_handler import SubmissionHandler
 from .submission_validator import SubmissionValidator
 from .table_generator import TableGenerator
@@ -70,4 +71,5 @@ __all__ = [# Configuration
            "DiagnosticFigureGenerator",
            "PsdFigureGenerator",
            # Table generation
-           "TableGenerator"]
+           "TableGenerator",
+           "ScorecardGenerator"]

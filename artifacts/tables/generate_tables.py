@@ -45,8 +45,8 @@ FORMATS = ("html",)
 INCLUDE_AVERAGE = True
 
 # Table names from configs/tables.json — edit this list to choose what to build
-TABLE_NAMES = ["pr_emulator_hist_future_perfect_cross_validation",
-               "tasmax_emulator_hist_future_perfect_cross_validation"]
+TABLE_NAMES = ["tasmax_emulator_hist_future_imperfect_interpolation_gcm_transferability",
+               "pr_emulator_hist_future_imperfect_interpolation_gcm_transferability"]
 
 
 def main():
