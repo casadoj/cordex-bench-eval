@@ -18,29 +18,36 @@ TABLES_DIR = ROOT / "output"
 DOMAINS = ["ALPS_Domain", "NZ_Domain", "SA_Domain"]
 
 # Submissions to include (set to None to use all entries from the catalog)
+
 submission_names = ['DeepESD-IFCAv1', 'DeepESD-IFCAv1-orog',
-                    'DeepESDcrps_IFCAv2', 'DeepESDcrps_IFCAv2-orog',
-                    'ViT-IFCAv1', 'ViT-IFCAv1-orog',
-                    'FlowMatching-v1', 'FlowMatching-v1-orog',
                     'ANN', 'ANN-orog',
-                    'UiBCorrDiff-orog', 'RCMGEM-mv-orog',
-                    'CorrDiff-TW1_NTNU-CWA', 'CorrDiff-TW1_NTNU-CWA-orog',
                     'Prithvi-UNet', 'Prithvi-UNet-orog',
-                    'XGBoost_IDL', 'DeepESD_IDL',
+                    'XGBoost_IDL',
                     'deepsensor_bas', 'deepsensor_orog_bas',
-                    'ResGAN', 'ResGAN-orog',
                     'CNRM-UNeT',
                     'Rossby-UNet', 'Rossby-UNet-orog',
-                    'EnScale', 'EnScale-orog', 'EnScale-linex',
-                    'spaGAN', 'spaGAN-orog',
                     'DetUNet', 'DetUNet-orog',
+                    'DetUNet-v2', 'DetUNet-v2-orog',
+                    'DeepESDcrps_IFCAv2', 'DeepESDcrps_IFCAv2-orog',
+                    'DeepESD_IDL',
                     'ParamUNET',
+                    'EnScale', 'EnScale-orog', 'EnScale-linex',
+                    'ViT-IFCAv1', 'ViT-IFCAv1-orog',
+                    'FlowMatching-v1', 'FlowMatching-v1-orog',
+                    'CorrDiff-TW1_NTNU-CWA', 'CorrDiff-TW1_NTNU-CWA-orog',
+                    'UiBCorrDiff-orog',
+                    'RCMGEM-mv-orog',
+                    'RCMFlow-orog',
+                    'ResGAN', 'ResGAN-orog',
                     'ResGAN-v2', 'ResGAN-v2-orog',
-                    'DetUNet-v2', 'DetUNet-v2-orog']
+                    'spaGAN', 'spaGAN-orog']
 
 ###########################################################
 # Include AV (average) column per metric
 INCLUDE_AVERAGE = True
+
+# Include Overall Rank column (aggregate rank across all metrics/domains)
+INCLUDE_OVERALL_RANK = True
 
 # Colormap for cell coloring
 CMAP = "Greys_r"
@@ -55,6 +62,10 @@ AVERAGE_ONLY = False
 # Number of discrete colour bins in the colorbar.
 N_COLOR_LEVELS = 20
 
+# Extra horizontal gap between metric groups (and before Overall), in cell-width units.
+# 0 reproduces the old tight layout; ~0.15–0.25 gives visible white separation between blocks.
+METRIC_COLUMN_GAP = 0.2
+
 # If True, colorbar runs worse → better (left → right). If False, better is on the left.
 COLORBAR_WORSE_ON_LEFT = True
 
@@ -62,11 +73,17 @@ COLORBAR_WORSE_ON_LEFT = True
 HIGHLIGHT_BEST = True
 # Matplotlib colour for that border
 BEST_CELL_BORDER_COLOR = "yellow"
-# Border stroke width in points 
+# Border stroke width in points
 BEST_CELL_BORDER_LINEWIDTH = 1.5
 
 # Colour for numeric values inside each cell
 CELL_TEXT_COLOR = "deeppink"
+
+# If True, the lower triangle (second experiment) shows the absolute
+# difference with the upper triangle (first experiment) instead of the raw value.
+# Computed as: |lower_value - upper_value|, except the Overall column where
+# the lower triangle still shows experiment 2's overall rank.
+LOWER_TRIANGLE_DIFF = True
 ###########################################################
 
 # Pairs of table names to render as dual-experiment scorecards.
@@ -99,7 +116,8 @@ def main():
         dfs = scorecard_gen.generate_scorecard(table_name=[name1, name2],
                                                submission_names=submission_names,
                                                domains=DOMAINS,
-                                               include_average=INCLUDE_AVERAGE)
+                                               include_average=INCLUDE_AVERAGE,
+                                               include_overall_rank=INCLUDE_OVERALL_RANK)
         desc1 = table_config.get("tables", {}).get(name1, {}).get("description", name1)
         desc2 = table_config.get("tables", {}).get(name2, {}).get("description", name2)
         description = f"{desc1}  |  {desc2}"
@@ -114,7 +132,9 @@ def main():
                                            cell_text_color=CELL_TEXT_COLOR,
                                            best_cell_border_color=BEST_CELL_BORDER_COLOR,
                                            best_cell_border_linewidth=BEST_CELL_BORDER_LINEWIDTH,
-                                           colorbar_worse_on_left=COLORBAR_WORSE_ON_LEFT)
+                                           colorbar_worse_on_left=COLORBAR_WORSE_ON_LEFT,
+                                           metric_column_gap=METRIC_COLUMN_GAP,
+                                           lower_triangle_diff=LOWER_TRIANGLE_DIFF)
         print(f"  {name1}  |  {name2}")
 
 

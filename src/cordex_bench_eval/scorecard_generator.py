@@ -54,7 +54,8 @@ class ScorecardGenerator:
     def generate_scorecard(self, table_name: str | List[str],
                            submission_names: Optional[List[str]] = None,
                            domains: Optional[List[str]] = None,
-                           include_average: bool = True) -> Union[pd.DataFrame, List[pd.DataFrame]]:
+                           include_average: bool = True,
+                           include_overall_rank: bool = False) -> Union[pd.DataFrame, List[pd.DataFrame]]:
         """
         Generate a scorecard DataFrame with models as rows.
 
@@ -71,6 +72,10 @@ class ScorecardGenerator:
             Domains to include.
         include_average : bool, default True
             Include AV (average) domain column for each metric.
+        include_overall_rank : bool, default False
+            Include an "Overall" column showing each model's aggregate rank
+            across all metrics and domains. The rank is computed by summing
+            per-column ranks and ranking these sums (1 = best overall).
 
         Returns
         -------
@@ -104,6 +109,18 @@ class ScorecardGenerator:
                 raise ValueError(
                     "Both experiments must share the same (Metric, Domain) columns."
                 )
+
+            # Add overall rank column if requested
+            if include_overall_rank:
+                for i, sc in enumerate(scorecards):
+                    overall_ranks = self._compute_overall_rank(sc)
+                    # Add as new column with MultiIndex ("Overall", "Rank")
+                    sc_copy = sc.copy()
+                    sc_copy[("Overall", "Rank")] = overall_ranks
+                    # Preserve attrs after copy
+                    sc_copy.attrs = sc.attrs
+                    scorecards[i] = sc_copy
+
             return scorecards
 
         df = self.table_generator.generate_table(
@@ -114,6 +131,12 @@ class ScorecardGenerator:
         )
         scorecard = df.T
         scorecard.attrs = df.attrs
+
+        # Add overall rank column if requested
+        if include_overall_rank:
+            overall_ranks = self._compute_overall_rank(scorecard)
+            scorecard[("Overall", "Rank")] = overall_ranks
+
         return scorecard
 
     def export_scorecard_pdf(self, df: pd.DataFrame | List[pd.DataFrame],
@@ -128,7 +151,9 @@ class ScorecardGenerator:
                              cell_text_color: Optional[str] = None,
                              best_cell_border_color: Optional[str] = None,
                              best_cell_border_linewidth: float = 2.2,
-                             colorbar_worse_on_left: bool = True) -> None:
+                             colorbar_worse_on_left: bool = True,
+                             metric_column_gap: float = 0.0,
+                             lower_triangle_diff: bool = False) -> None:
         """
         Render a scorecard DataFrame as a colored PDF table.
 
@@ -184,6 +209,18 @@ class ScorecardGenerator:
             on the left and worse on the right. Cell colours are unchanged; only
             the legend gradient and end labels are flipped (using a reversed
             colormap for the colorbar so colours still match the table).
+        metric_column_gap : float, default 0.0
+            Extra horizontal space (in cell-width units) inserted between
+            consecutive metric column groups, so e.g. RMSE vs CRPS vs Overall
+            read as separate blocks. ``0`` keeps the original tight layout.
+        lower_triangle_diff : bool, default False
+            If True and a dual-experiment list is passed, the lower-right
+            triangle shows the absolute difference ``|exp2 - exp1|`` instead
+            of the raw experiment 2 value. Colors and best-cell highlighting
+            are also computed from these values. Columns under the ``Overall``
+            metric (e.g. ``("Overall", "Rank")``) are an exception: the lower
+            triangle always shows experiment 2's values there, so the overall
+            rank in exp2 remains visible.
         """
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -198,14 +235,31 @@ class ScorecardGenerator:
             df1 = df
             df2 = None
 
+        # Prepare display DataFrame for lower triangle (used when lower_triangle_diff=True)
+        df2_display = None
+
         if average_only:
-            av_cols = [c for c in df1.columns if c[1] == "AV"]
+            # Preserve AV columns and the Overall column if present
+            av_cols = [c for c in df1.columns if c[1] == "AV" or c[0] == "Overall"]
             if not av_cols:
                 raise ValueError("No AV columns found. Set include_average=True "
                                  "in generate_scorecard().")
             df1 = df1[av_cols]
             if is_dual:
                 df2 = df2[av_cols]
+
+        # --- Compute difference for lower triangle if requested -------------
+        if is_dual and lower_triangle_diff:
+            # Absolute difference |df2 - df1| for display in lower triangle
+            df2_display = (df2 - df1).abs()
+            # Preserve attrs which contain metric specs needed for normalization
+            df2_display.attrs = df2.attrs
+            # Overall column(s): keep exp2 raw values (ranks), not |exp2 - exp1|
+            for col in df2_display.columns:
+                if isinstance(col, tuple) and col[0] == "Overall":
+                    df2_display[col] = df2[col]
+        else:
+            df2_display = df2
 
         # --- Normalized scores & best masks ----------------------------------
         norm_scores1 = self._compute_normalized_scores(df1, normalization=normalization)
@@ -216,9 +270,9 @@ class ScorecardGenerator:
         )
 
         if is_dual:
-            norm_scores2 = self._compute_normalized_scores(df2, normalization=normalization)
+            norm_scores2 = self._compute_normalized_scores(df2_display, normalization=normalization)
             best_mask2 = (
-                self.table_generator._compute_best_mask(df2.T).T
+                self.table_generator._compute_best_mask(df2_display.T).T
                 if highlight_best
                 else pd.DataFrame(False, index=df2.index, columns=df2.columns)
             )
@@ -235,27 +289,45 @@ class ScorecardGenerator:
         top_margin = 1.0 + (0.3 if description else 0.0)
         bottom_margin = 0.8
 
-        fig_width = left_margin + n_cols * col_width + 0.3
+        # Horizontal positions: optional gap between each metric group (incl. Overall)
+        metrics_for_layout = df1.columns.get_level_values("Metric")
+        metric_groups_layout: List[tuple] = []
+        current_m, start_m = None, 0
+        for jj, m in enumerate(metrics_for_layout):
+            if m != current_m:
+                if current_m is not None:
+                    metric_groups_layout.append((current_m, start_m, jj))
+                current_m, start_m = m, jj
+        metric_groups_layout.append((current_m, start_m, n_cols))
+
+        x_left = np.arange(n_cols, dtype=float)
+        if metric_column_gap > 0 and len(metric_groups_layout) > 1:
+            for (_, s, _) in metric_groups_layout[1:]:
+                x_left[s:] += metric_column_gap
+        x_plot_max = float(x_left[-1] + 1.0)
+
+        fig_width = left_margin + x_plot_max * col_width + 0.3
         fig_height = top_margin + n_rows * row_height + bottom_margin
 
         fig = plt.figure(figsize=(fig_width, fig_height))
 
         table_left = left_margin / fig_width
         table_bottom = bottom_margin / fig_height
-        table_width = (n_cols * col_width) / fig_width
+        table_width = (x_plot_max * col_width) / fig_width
         table_height = (n_rows * row_height) / fig_height
 
         ax = fig.add_axes([table_left, table_bottom, table_width, table_height])
-        ax.set_xlim(0, n_cols)
+        ax.set_xlim(0, x_plot_max)
         ax.set_ylim(n_rows, 0)
         ax.axis("off")
+        ax.set_facecolor("white")
 
         # Half the highlight stroke width in data units so the stroke stays
         # *inside* the cell. Matplotlib draws strokes centered on the path; a
         # thick edge on the 1×1 cell boundary otherwise straddles the grid and
         # miter joins can spike at corners.
         tw, th = fig_width * table_width, fig_height * table_height
-        half_lw_x = (best_cell_border_linewidth / 2) / 72 * n_cols / tw
+        half_lw_x = (best_cell_border_linewidth / 2) / 72 * x_plot_max / tw
         half_lw_y = (best_cell_border_linewidth / 2) / 72 * n_rows / th
         half_lw_x = min(half_lw_x, 0.45)
         half_lw_y = min(half_lw_y, 0.45)
@@ -267,8 +339,9 @@ class ScorecardGenerator:
             shrink = max(half_lw_x, half_lw_y) * 2.5
             for i in range(n_rows):
                 for j in range(n_cols):
+                    x0 = x_left[j]
                     val1 = df1.iloc[i, j]
-                    val2 = df2.iloc[i, j]
+                    val2 = df2_display.iloc[i, j]
                     score1 = norm_scores1.iloc[i, j]
                     score2 = norm_scores2.iloc[i, j]
                     is_nan1 = pd.isna(val1)
@@ -278,14 +351,14 @@ class ScorecardGenerator:
                     fc2 = "#f0f0f0" if is_nan2 else colormap(color_norm(score2))
 
                     # Upper-left triangle (experiment 1)
-                    verts_ul = [(j, i), (j + 1, i), (j, i + 1)]
+                    verts_ul = [(x0, i), (x0 + 1, i), (x0, i + 1)]
                     ax.add_patch(Polygon(
                         verts_ul, closed=True, facecolor=fc1,
                         edgecolor="none", linewidth=0, zorder=1,
                     ))
 
                     # Lower-right triangle (experiment 2)
-                    verts_lr = [(j + 1, i), (j + 1, i + 1), (j, i + 1)]
+                    verts_lr = [(x0 + 1, i), (x0 + 1, i + 1), (x0, i + 1)]
                     ax.add_patch(Polygon(
                         verts_lr, closed=True, facecolor=fc2,
                         edgecolor="none", linewidth=0, zorder=1,
@@ -293,7 +366,7 @@ class ScorecardGenerator:
 
                     # Best-cell border on the corresponding triangle
                     if bool(best_mask1.iloc[i, j]) and highlight_best:
-                        cx, cy = j + 1 / 3, i + 1 / 3
+                        cx, cy = x0 + 1 / 3, i + 1 / 3
                         inset = [(vx + (cx - vx) * shrink,
                                   vy + (cy - vy) * shrink)
                                  for vx, vy in verts_ul]
@@ -305,7 +378,7 @@ class ScorecardGenerator:
                         ))
 
                     if bool(best_mask2.iloc[i, j]) and highlight_best:
-                        cx, cy = j + 2 / 3, i + 2 / 3
+                        cx, cy = x0 + 2 / 3, i + 2 / 3
                         inset = [(vx + (cx - vx) * shrink,
                                   vy + (cy - vy) * shrink)
                                  for vx, vy in verts_lr]
@@ -317,20 +390,26 @@ class ScorecardGenerator:
                         ))
 
                     # Value labels
+                    # Use integer format for Overall column (ranks are integers)
+                    col_name = df1.columns[j]
+                    is_overall_col = col_name[0] == "Overall" if isinstance(col_name, tuple) else col_name == "Overall"
+                    value_format = "%d" if is_overall_col else float_format
+
                     if not is_nan1:
                         tc1 = self._text_color_for_background(fc1, cell_text_color)
-                        ax.text(j + 0.3, i + 0.35, float_format % val1,
+                        ax.text(x0 + 0.3, i + 0.35, value_format % val1,
                                 ha="center", va="center", fontsize=5.5,
                                 color=tc1, zorder=5)
 
                     if not is_nan2:
                         tc2 = self._text_color_for_background(fc2, cell_text_color)
-                        ax.text(j + 0.7, i + 0.65, float_format % val2,
+                        ax.text(x0 + 0.7, i + 0.65, value_format % val2,
                                 ha="center", va="center", fontsize=5.5,
                                 color=tc2, zorder=5)
         else:
             for i in range(n_rows):
                 for j in range(n_cols):
+                    x0 = x_left[j]
                     val = df1.iloc[i, j]
                     score = norm_scores1.iloc[i, j]
                     is_nan = pd.isna(val)
@@ -339,12 +418,12 @@ class ScorecardGenerator:
                     is_best = bool(best_mask1.iloc[i, j]) and highlight_best
                     if is_best:
                         rect_fill = plt.Rectangle(
-                            (j, i), 1, 1, facecolor=facecolor,
+                            (x0, i), 1, 1, facecolor=facecolor,
                             edgecolor="none", linewidth=0, zorder=1,
                         )
                         ax.add_patch(rect_fill)
                         rect_border = plt.Rectangle(
-                            (j + half_lw_x, i + half_lw_y),
+                            (x0 + half_lw_x, i + half_lw_y),
                             1 - 2 * half_lw_x, 1 - 2 * half_lw_y,
                             facecolor="none", edgecolor=border_color,
                             linewidth=best_cell_border_linewidth,
@@ -353,7 +432,7 @@ class ScorecardGenerator:
                         ax.add_patch(rect_border)
                     else:
                         rect = plt.Rectangle(
-                            (j, i), 1, 1, facecolor=facecolor,
+                            (x0, i), 1, 1, facecolor=facecolor,
                             edgecolor="white", linewidth=0.5, joinstyle="round",
                             zorder=1,
                         )
@@ -362,42 +441,47 @@ class ScorecardGenerator:
                     if not is_nan:
                         text_color = self._text_color_for_background(
                             facecolor, cell_text_color)
-                        ax.text(j + 0.5, i + 0.5, float_format % val,
+                        # Use integer format for Overall column (ranks are integers)
+                        col_name = df1.columns[j]
+                        is_overall_col = col_name[0] == "Overall" if isinstance(col_name, tuple) else col_name == "Overall"
+                        value_format = "%d" if is_overall_col else float_format
+                        ax.text(x0 + 0.5, i + 0.5, value_format % val,
                                 ha="center", va="center", fontsize=6.5,
                                 color=text_color, zorder=5)
 
         # --- Row labels (model names) ----------------------------------------
+        catalog = self.table_generator.catalog
         for i, model in enumerate(df1.index):
-            ax.text(-0.15, i + 0.5, model, ha="right", va="center", fontsize=7)
+            is_probabilistic = catalog.is_probabilistic(model)
+            uses_orog = catalog.uses_orography(model)
+
+            label = f"★ {model}" if is_probabilistic else str(model)
+            # "dark" is not a matplotlib named color in all versions; use near-black.
+            color = "saddlebrown" if uses_orog else "#1a1a1a"
+
+            ax.text(-0.15, i + 0.5, label, ha="right", va="center", fontsize=7,
+                    color=color)
 
         # --- Column headers ---------------------------------------------------
-        metrics = df1.columns.get_level_values("Metric")
         domains = df1.columns.get_level_values("Domain")
 
         if not average_only:
             for j in range(n_cols):
-                ax.text(j + 0.5, -0.1, domains[j], ha="center", va="bottom",
+                ax.text(x_left[j] + 0.5, -0.1, domains[j], ha="center", va="bottom",
                         fontsize=6, rotation=0)
-
-        metric_groups = []
-        current, start = None, 0
-        for j, m in enumerate(metrics):
-            if m != current:
-                if current is not None:
-                    metric_groups.append((current, start, j))
-                current, start = m, j
-        metric_groups.append((current, start, n_cols))
 
         header_y = -0.15 if average_only else -0.55
         line_y = -0.05 if average_only else -0.4
-        for name, s, e in metric_groups:
-            mid = (s + e) / 2.0
+        for name, s, e in metric_groups_layout:
+            x_start = x_left[s]
+            x_end = x_left[e - 1] + 1.0
+            mid = (x_start + x_end) / 2.0
             ax.text(mid, header_y, name, ha="center", va="bottom",
                     fontsize=7, fontweight="bold")
-            ax.plot([s + 0.05, e - 0.05], [line_y, line_y], color="black",
+            ax.plot([x_start + 0.05, x_end - 0.05], [line_y, line_y], color="black",
                     linewidth=0.7, clip_on=False)
             if s > 0:
-                ax.plot([s, s], [line_y + 0.05, n_rows], color="grey",
+                ax.plot([x_start, x_start], [line_y + 0.05, n_rows], color="grey",
                         linewidth=0.6, clip_on=False)
 
         # --- Description ------------------------------------------------------
@@ -537,3 +621,63 @@ class ScorecardGenerator:
             return (clipped + 2) / 4.0
 
         raise ValueError(f"Unknown normalization method: {method!r}")
+
+    def _compute_overall_rank(self, df: pd.DataFrame) -> pd.Series:
+        """
+        Compute overall rank for each model based on sum of per-column ranks.
+
+        For each column (Metric, Domain), models are ranked (1 = best).
+        The ranks are summed per model, and the sums are ranked again
+        to produce the overall rank (1 = lowest sum = best overall).
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Scorecard DataFrame (models as rows, (Metric, Domain) columns).
+
+        Returns
+        -------
+        pd.Series
+            Overall rank for each model (index matches df.index, values are
+            ranks 1..N where 1 is the best overall performer).
+        """
+        metric_specs = df.attrs.get("metric_specs_by_name", {})
+        metrics_registry = (self.table_generator.evaluator
+                            .metrics_registry.get("metrics", {}))
+
+        # Collect ranks for each column
+        rank_sums = pd.Series(0.0, index=df.index)
+        valid_counts = pd.Series(0, index=df.index)
+
+        for col in df.columns:
+            metric_name = col[0] if isinstance(col, tuple) else col
+            spec = metric_specs.get(str(metric_name), {})
+            reduction_fn = spec.get("reduction", "mean")
+            metric_key = spec.get("key")
+            metric_type = metrics_registry.get(metric_key, {}).get("type")
+
+            values = pd.to_numeric(df[col], errors="coerce")
+            scores = self.table_generator._score_row_for_best(
+                row_values=values,
+                metric_name=str(metric_name),
+                metric_type=metric_type,
+                reduction_fn=reduction_fn,
+            )
+
+            # Compute ranks for this column (1 = best, i.e., lowest score)
+            # Use dense ranking so ties get the same rank without gaps
+            col_ranks = scores.rank(method="dense", na_option="keep", ascending=True)
+
+            # Add to sum (only for valid values)
+            valid_mask = np.isfinite(scores)
+            rank_sums += col_ranks.where(valid_mask, 0)
+            valid_counts += valid_mask.astype(int)
+
+        # For models with no valid data, return NaN
+        rank_sums = rank_sums.where(valid_counts > 0, np.nan)
+
+        # Rank the sums (1 = lowest sum = best overall)
+        # Using dense ranking: lower sum gets better rank
+        overall_ranks = rank_sums.rank(method="dense", na_option="keep", ascending=True)
+
+        return overall_ranks

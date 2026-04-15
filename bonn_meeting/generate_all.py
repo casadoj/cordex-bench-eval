@@ -68,7 +68,8 @@ def main():
                         'DeepESDcrps_IFCAv2', 'DeepESDcrps_IFCAv2-orog',
                         'ViT-IFCAv1', 'ViT-IFCAv1-orog',
                         'ResGAN-v2', 'ResGAN-v2-orog',
-                        'DetUNet-v2', 'DetUNet-v2-orog']
+                        'DetUNet-v2', 'DetUNet-v2-orog',
+                        'RCMFlow-orog']
 
     # print("Generating tables...")
     # table_gen = TableGenerator(config=config,

@@ -6,7 +6,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -15,7 +16,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     },
     {
@@ -24,7 +26,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     },
     {
@@ -33,7 +36,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "false"
       }
     },
     {
@@ -42,7 +46,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "false"
       }
     },
     {
@@ -51,7 +56,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     },
     {
@@ -60,7 +66,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "false"
       }
     },
     {
@@ -69,7 +76,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "false"
       }
     },
     {
@@ -78,7 +86,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -87,7 +96,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     },
     {
@@ -96,7 +106,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "false"
       }
     },
     {
@@ -105,7 +116,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "false"
       }
     },
     {
@@ -114,7 +126,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "false"
       }
     },
     {
@@ -123,7 +136,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -132,7 +146,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "false"
       }
     },
     {
@@ -141,7 +156,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "false"
       }
     },
     {
@@ -150,7 +166,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -159,7 +176,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     },
     {
@@ -168,7 +186,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -177,7 +196,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     },
     {
@@ -186,7 +206,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -195,7 +216,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "false"
       }
     },
     {
@@ -204,7 +226,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "false"
       }
     },
     {
@@ -213,7 +236,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "false"
       }
     },
     {
@@ -222,7 +246,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -231,7 +256,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     },
     {
@@ -240,7 +266,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "false"
       }
     },
     {
@@ -249,7 +276,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "false"
       }
     },
     {
@@ -258,7 +286,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -267,7 +296,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -276,7 +306,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     },
     {
@@ -285,7 +316,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -294,7 +326,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     },
     {
@@ -303,7 +336,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "true"
       }
     },
     {
@@ -312,7 +346,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     },
     {
@@ -321,7 +356,8 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "false"
+        "uses_orography": "false",
+        "probabilistic": "false"
       }
     },
     {
@@ -330,7 +366,18 @@
       "created_at": "2026-02-11T09:12:35.975640+00:00",
       "status": "staged",
       "extra": {
-        "uses_orography": "true"
+        "uses_orography": "true",
+        "probabilistic": "false"
+      }
+    },
+    {
+      "name": "RCMFlow-orog",
+      "location": "/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/staging/RCMFlow-orog",
+      "created_at": "2026-02-11T09:12:35.975640+00:00",
+      "status": "staged",
+      "extra": {
+        "uses_orography": "true",
+        "probabilistic": "true"
       }
     }
   ]

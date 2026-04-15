@@ -126,12 +126,12 @@ class SubmissionCatalog:
     def uses_orography(self, name: str) -> bool:
         """
         Check if a submission uses orography as a predictor.
-        
+
         Parameters
         ----------
         name : str
             Submission name to look up.
-        
+
         Returns
         -------
         bool
@@ -141,3 +141,22 @@ class SubmissionCatalog:
         if entry is None:
             return False
         return entry.extra.get("uses_orography", "false").lower() == "true"
+
+    def is_probabilistic(self, name: str) -> bool:
+        """
+        Check if a submission is probabilistic.
+
+        Parameters
+        ----------
+        name : str
+            Submission name to look up.
+
+        Returns
+        -------
+        bool
+            True if the submission is probabilistic, False otherwise.
+        """
+        entry = self.get(name)
+        if entry is None:
+            return False
+        return entry.extra.get("probabilistic", "false").lower() == "true"
