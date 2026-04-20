@@ -38,6 +38,7 @@ submission_names = ['DeepESD-IFCAv1', 'DeepESD-IFCAv1-orog',
                     'UiBCorrDiff-orog',
                     'RCMGEM-mv-orog',
                     'RCMFlow-orog',
+                    'ParamDiffusion-orog',
                     'ResGAN', 'ResGAN-orog',
                     'ResGAN-v2', 'ResGAN-v2-orog',
                     'spaGAN', 'spaGAN-orog']

@@ -40,7 +40,7 @@ EVALUATION_EXPERIMENTS = [
 RECOMPUTE_EXISTING = False
 
 # Model to compute diagnostics for
-model_to_evaluate = "RCMFlow-orog"
+model_to_evaluate = "GNN4CD-orog"
 
 ########################################################################################
 # LOAD CONFIGURATION AND CATALOG
