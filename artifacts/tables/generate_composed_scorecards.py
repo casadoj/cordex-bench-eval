@@ -28,7 +28,8 @@ submission_names = ['DeepESD-IFCAv1', 'DeepESD-IFCAv1-orog',
                     'Rossby-UNet', 'Rossby-UNet-orog',
                     'DetUNet', 'DetUNet-orog',
                     'DetUNet-v2', 'DetUNet-v2-orog',
-                    'DeepESDcrps_IFCAv2', 'DeepESDcrps_IFCAv2-orog',
+                    'GNN4CD-orog',
+                    # 'DeepESDcrps_IFCAv2', 'DeepESDcrps_IFCAv2-orog',
                     'DeepESD_IDL',
                     'ParamUNET',
                     'EnScale', 'EnScale-orog', 'EnScale-linex',
@@ -84,7 +85,7 @@ CELL_TEXT_COLOR = "deeppink"
 # difference with the upper triangle (first experiment) instead of the raw value.
 # Computed as: |lower_value - upper_value|, except the Overall column where
 # the lower triangle still shows experiment 2's overall rank.
-LOWER_TRIANGLE_DIFF = True
+LOWER_TRIANGLE_DIFF = False
 ###########################################################
 
 # Pairs of table names to render as dual-experiment scorecards.
