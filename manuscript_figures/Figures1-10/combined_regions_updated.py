@@ -407,6 +407,10 @@ def _draw_cc_kde_inset(ax, all_means, truth_mean, tops, bots, variable, unit_str
     if vals.size == 0:
         ax.set_axis_off(); return
 
+    # mask out the really high values
+    vals_mean = vals.mean()
+    vals_std = vals.std()
+    vals = vals[vals < vals_mean + 1.95 * vals_std]
     lo = min(float(vals.min()), truth_mean if truth_mean is not None else float(vals.min()))
     hi = max(float(vals.max()), truth_mean if truth_mean is not None else float(vals.max()))
     pad = 0.08 * max(hi - lo, 1e-6)
@@ -436,7 +440,7 @@ def _draw_cc_kde_inset(ax, all_means, truth_mean, tops, bots, variable, unit_str
     ax.set_xlabel(f"Area-mean Δ  [{unit_str}]", fontsize=14, fontweight="bold")
     ax.set_ylabel("Density", fontsize=13)
     ax.tick_params(labelsize=12)
-    ax.set_title(f"Δ signal across {vals.size} models", fontsize=11, pad=3,
+    ax.set_title(f"Δ signal", fontsize=11, pad=3,
                  fontweight="bold")
     ax.grid(axis="y", linewidth=0.3, alpha=0.5)
     ax.set_axisbelow(True)
@@ -464,6 +468,11 @@ def _draw_rmse_kde_inset(ax, all_rmse, tops, bots, variable):
     vals  = vals[ok]
     if vals.size == 0:
         ax.set_axis_off(); return
+    # let me see if I can remove the mean
+    vals_mean = vals.mean()
+    vals_std = vals.std()
+    vals = vals[vals < vals_mean + 1.95 * vals_std]
+    
     lo, hi = float(vals.min()), float(vals.max())
     pad = 0.08 * max(hi - lo, 1e-6); lo = max(0.0, lo - pad); hi += pad
     grid = np.linspace(lo, hi, 256)
@@ -522,7 +531,7 @@ def _draw_max_kde_inset(ax, all_max, truth_max, tops, bots, variable):
                   fontsize=14, fontweight="bold")
     ax.set_ylabel("Density", fontsize=13)
     ax.tick_params(labelsize=12)
-    ax.set_title(f"Max across {vals.size} models", fontsize=11, pad=3, fontweight="bold")
+    ax.set_title(f"Max Intensity across all models", fontsize=11, pad=3, fontweight="bold")
     ax.grid(axis="y", linewidth=0.3, alpha=0.5); ax.set_axisbelow(True)
 
 
