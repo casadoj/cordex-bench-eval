@@ -34,7 +34,7 @@ pixi info
 pixi add python=3.11 xarray dask netcdf4 zarr matplotlib numpy cartopy pandas >/dev/null
 
 # --- script directory (where this file lives) ---
-SCRIPTS_DIR="/lustre/gmeteo/WORK/rampaln/cordex-ml-bench"
+SCRIPTS_DIR="/lustre/gmeteo/WORK/rampaln/cordex-ml-bench/cordex-bench-eval/manuscript_figures/Figures1-10"
 
 # --- user-configurable paths ---
 DIAG_ROOT="${DIAG_ROOT:-/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/diagnostics}"
