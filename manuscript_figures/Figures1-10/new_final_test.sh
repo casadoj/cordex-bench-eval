@@ -40,7 +40,7 @@ SCRIPTS_DIR="/lustre/gmeteo/WORK/rampaln/cordex-ml-bench/cordex-bench-eval/manus
 DIAG_ROOT="${DIAG_ROOT:-/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/diagnostics}"
 TRUTH_ROOT="${TRUTH_ROOT:-/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/target}"
 PRED_ROOT="${PRED_ROOT:-/lustre/gmeteo/WORK/abadj/cordex-bench-eval/data/staging}"
-OUT_ROOT="${OUT_ROOT:-/lustre/gmeteo/WORK/rampaln/cordex-ml-bench/plots}"
+OUT_ROOT="${OUT_ROOT:-/lustre/gmeteo/WORK/rampaln/cordex-ml-bench/cordex-bench-eval/manuscript_figures/Figures1-10/plots}"
 
 # --- knobs for the plot scripts ---
 DATE="${DATE:-}"
