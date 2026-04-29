@@ -493,7 +493,7 @@ def _draw_rmse_kde_inset(ax, all_rmse, tops, bots, variable):
     ax.set_xlabel(f"RMSE  [{bu.units_for(variable)}]", fontsize=14, fontweight="bold")
     ax.set_ylabel("Density", fontsize=13)
     ax.tick_params(labelsize=12)
-    ax.set_title(f"RMSE across {vals.size} models", fontsize=11, pad=3)
+    ax.set_title(f"RMSE across all models", fontsize=11, pad=3)
     ax.grid(axis="y", linewidth=0.3, alpha=0.5); ax.set_axisbelow(True)
 
 

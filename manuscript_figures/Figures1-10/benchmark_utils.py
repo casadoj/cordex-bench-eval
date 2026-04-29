@@ -510,8 +510,8 @@ def safe_random_date(times: xr.DataArray, seed: int | None) -> np.datetime64:
 def rmse(pred: xr.DataArray, truth: xr.DataArray) -> float:
     pred = ensemble_mean(pred)
     truth = ensemble_mean(truth)
-    p, t = xr.align(pred, truth, join="inner")
-    diff = p.values - t.values
+    #p, t = xr.align(pred, truth, join="inner")
+    diff = pred.values - truth.values
     return float(np.sqrt(np.nanmean(diff ** 2)))
 
 
