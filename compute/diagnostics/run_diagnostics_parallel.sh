@@ -37,17 +37,21 @@
 # "DetUNet-v2-orog"
 # "ANN"
 # "ANN-orog"
+# "RCMFlow-orog"
+# "ParamDiffusion-orog"
+# "GNN4CD-orog"
 
 MODELS=(
-    "DetUNet"
-    "DetUNet-orog"
-    "ParamUNET"
-    "ResGAN-v2"
-    "ResGAN-v2-orog"
-    "DetUNet-v2"
-    "DetUNet-v2-orog"
-    "ANN"
-    "ANN-orog"
+"ParamUNET"
+"ResGAN-v2"
+"ResGAN-v2-orog"
+"DetUNet-v2"
+"DetUNet-v2-orog"
+"ANN"
+"ANN-orog"
+"RCMFlow-orog"
+"ParamDiffusion-orog"
+"GNN4CD-orog"
 )
 
 
