@@ -58,9 +58,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "pr_esd_pseudo_reality_imperfect_cross_validation": {
@@ -73,9 +71,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "pr_esd_pseudo_reality_perfect_extrapolation": {
@@ -88,9 +84,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "pr_esd_pseudo_reality_imperfect_extrapolation": {
@@ -103,9 +97,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "pr_esd_pseudo_reality_perfect_extrapolation_gcm_transferability": {
@@ -118,9 +110,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_esd_pseudo_reality_perfect_cross_validation": {
@@ -133,9 +123,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_esd_pseudo_reality_imperfect_cross_validation": {
@@ -148,9 +136,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_esd_pseudo_reality_perfect_extrapolation": {
@@ -163,9 +149,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_esd_pseudo_reality_imperfect_extrapolation": {
@@ -178,9 +162,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_esd_pseudo_reality_perfect_extrapolation_gcm_transferability": {
@@ -193,9 +175,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "pr_emulator_hist_future_perfect_cross_validation": {
@@ -208,9 +188,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "pr_emulator_hist_future_imperfect_cross_validation": {
@@ -223,9 +201,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "pr_emulator_hist_future_perfect_interpolation": {
@@ -238,9 +214,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "pr_emulator_hist_future_imperfect_interpolation": {
@@ -253,9 +227,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "pr_emulator_hist_future_perfect_interpolation_gcm_transferability": {
@@ -268,9 +240,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "pr_emulator_hist_future_imperfect_interpolation_gcm_transferability": {
@@ -283,9 +253,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "SDII_bias", "key": "sdii_bias", "reduction": "abs_mean"},
         {"name": "RX1DAY_bias", "key": "rx1day_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_emulator_hist_future_perfect_cross_validation": {
@@ -298,9 +266,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_emulator_hist_future_imperfect_cross_validation": {
@@ -313,9 +279,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_emulator_hist_future_perfect_interpolation": {
@@ -328,9 +292,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_emulator_hist_future_imperfect_interpolation": {
@@ -343,9 +305,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_emulator_hist_future_perfect_interpolation_gcm_transferability": {
@@ -358,9 +318,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     },
     "tasmax_emulator_hist_future_imperfect_interpolation_gcm_transferability": {
@@ -373,9 +331,7 @@
         {"name": "Mean_bias", "key": "mean_bias", "reduction": "abs_mean"},
         {"name": "TXX_bias", "key": "txx_bias", "reduction": "abs_mean"},
         {"name": "Interannual_var_bias", "key": "interannual_var_bias", "reduction": "abs_mean"},
-        {"name": "Lag1_corr_bias", "key": "lag1_corr_bias", "reduction": "abs_mean"},
-        {"name": "RALSD", "key": "ralsd", "reduction": "mean"},
-        {"name": "PR_TASMAX_corr_bias", "key": "pr_tasmax_corr_bias", "reduction": "abs_mean"}
+        {"name": "RALSD", "key": "ralsd", "reduction": "mean"}
       ]
     }
   }

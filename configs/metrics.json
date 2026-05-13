@@ -29,20 +29,20 @@
     "sdii_bias": {
       "type": "bias_index",
       "index_fn": "evaluation.indices.sdii",
-      "member_handling": "random",
-      "kwargs": {
-        "wet_threshold": 1.0
-      }
+      "member_handling": "member_mean",
+      "n_members": 5
     },
     "rx1day_bias": {
       "type": "bias_index",
       "index_fn": "evaluation.indices.rx1day",
-      "member_handling": "random"
+      "member_handling": "member_mean",
+      "n_members": 5
     },
     "txx_bias": {
       "type": "bias_index",
       "index_fn": "evaluation.indices.txx",
-      "member_handling": "random"
+      "member_handling": "member_mean",
+      "n_members": 5
     },
     "txn_bias": {
       "type": "bias_index",
