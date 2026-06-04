@@ -297,10 +297,10 @@ def _region_band(subfig, domain, gcm, *, args, paths, rankings, mode):
 
     # Region / TOP / BOTTOM labels on the left margin
     subfig.text(0.028, 0.6, domain, rotation=90,
-                fontsize=22, fontweight="bold", style="italic",
+                fontsize=24, fontweight="bold", style="italic",
                 color="#222", va="center", ha="center")
-    subfig.text(0.042, 0.72, "TOP", rotation=90, fontsize=14, color="#1a5e2a", va="center", ha="center")
-    subfig.text(0.042, 0.42, "BOTTOM", rotation=90, fontsize=14, color="#8b1a1a", va="center", ha="center")
+    subfig.text(0.042, 0.72, "TOP", rotation=90, fontsize=17, color="#1a5e2a", va="center", ha="center")
+    subfig.text(0.042, 0.42, "BOTTOM", rotation=90, fontsize=17, color="#8b1a1a", va="center", ha="center")
 
     labels = REGION_LABELS[domain]
 
@@ -311,7 +311,7 @@ def _region_band(subfig, domain, gcm, *, args, paths, rankings, mode):
                          lon2d=lonlat2d[0] if lonlat2d else None,
                          lat2d=lonlat2d[1] if lonlat2d else None)
         ax.text(0.02, 0.97, letter, transform=ax.transAxes,
-                fontsize=14, fontweight="bold", va="top", ha="left",
+                fontsize=16, fontweight="bold", va="top", ha="left",
                 color="white", path_effects=[_stroke(1.3, "#000")])
         ax.set_title(f"{model}", fontsize=15, pad=3, weight ='bold')
 
@@ -349,7 +349,7 @@ def _region_band(subfig, domain, gcm, *, args, paths, rankings, mode):
         if date_hint:
             title += f"   ({date_hint})"
 
-    ax_truth.set_title(title, fontsize=18, fontweight="bold", pad=5)
+    ax_truth.set_title(title, fontsize=20, fontweight="bold", pad=5)
     ax_truth.text(0.02, 0.98, labels[6], transform=ax_truth.transAxes,
                   fontsize=15, fontweight="bold", va="top", ha="left",
                   color="white", path_effects=[_stroke(1.6, "#000")])
@@ -373,8 +373,8 @@ def _region_band(subfig, domain, gcm, *, args, paths, rankings, mode):
         cb_label = f"Δ{INDEX_NAME[args.variable]}  [{unit_str}]"
     else:
         cb_label = f"{bu.pretty_var(args.variable)}  [{bu.units_for(args.variable)}]"
-    cb.set_label(cb_label, fontsize=16, fontweight="bold")
-    cb.ax.tick_params(labelsize=15)
+    cb.set_label(cb_label, fontsize=18, fontweight="bold")
+    cb.ax.tick_params(labelsize=18)
     cb.outline.set_linewidth(0.6)
 
     # Distribution inset (bottom-right of band)
@@ -437,24 +437,24 @@ def _draw_cc_kde_inset(ax, all_means, truth_mean, tops, bots, variable, unit_str
 
     ax.set_xlim(lo, hi)
     ax.set_ylim(bottom=min(y0 * 1.5, -1e-6))
-    ax.set_xlabel(f"Area-mean Δ  [{unit_str}]", fontsize=14, fontweight="bold")
-    ax.set_ylabel("Density", fontsize=13)
-    ax.tick_params(labelsize=12)
-    ax.set_title(f"Δ signal", fontsize=11, pad=3,
+    ax.set_xlabel(f"Area-mean Δ  [{unit_str}]", fontsize=16, fontweight="bold")
+    ax.set_ylabel("Density", fontsize=16)
+    ax.tick_params(labelsize=16)
+    ax.set_title(f"Δ signal", fontsize=18, pad=3,
                  fontweight="bold")
     ax.grid(axis="y", linewidth=0.3, alpha=0.5)
     ax.set_axisbelow(True)
 
     handles = [
         mlines.Line2D([], [], color=line,      lw=2.0,
-                      label=f"KDE (n={vals.size})"),
+                      label=f"KDE"),
         mlines.Line2D([], [], color="black",   lw=2.2, label="truth mean"),
         mlines.Line2D([], [], color="#1a5e2a", marker="o", lw=0,
                       markersize=7, label="top sampled"),
         mlines.Line2D([], [], color="#8b1a1a", marker="o", lw=0,
                       markersize=7, label="bot sampled"),
     ]
-    ax.legend(handles=handles, loc="upper right", fontsize=7,
+    ax.legend(handles=handles, loc="upper right", fontsize=8,
               frameon=True, framealpha=0.9, handlelength=1.4, borderpad=0.3)
 
 
@@ -490,10 +490,10 @@ def _draw_rmse_kde_inset(ax, all_rmse, tops, bots, variable):
         ax.scatter(v, y0, s=s, color=c, edgecolors="black",
                    linewidths=0.4, zorder=z, clip_on=False)
     ax.set_xlim(lo, hi); ax.set_ylim(bottom=min(y0 * 1.5, -1e-6))
-    ax.set_xlabel(f"RMSE  [{bu.units_for(variable)}]", fontsize=14, fontweight="bold")
-    ax.set_ylabel("Density", fontsize=13)
-    ax.tick_params(labelsize=12)
-    ax.set_title(f"RMSE across all models", fontsize=11, pad=3)
+    ax.set_xlabel(f"RMSE  [{bu.units_for(variable)}]", fontsize=16, fontweight="bold")
+    ax.set_ylabel("Density", fontsize=16)
+    ax.tick_params(labelsize=16)
+    ax.set_title(f"RMSE across all models", fontsize=18, pad=3)
     ax.grid(axis="y", linewidth=0.3, alpha=0.5); ax.set_axisbelow(True)
 
 
@@ -528,10 +528,10 @@ def _draw_max_kde_inset(ax, all_max, truth_max, tops, bots, variable):
         ax.axvline(truth_max, color="black", linewidth=2.4, zorder=4)
     ax.set_xlim(lo, hi); ax.set_ylim(bottom=min(y0 * 1.5, -1e-6))
     ax.set_xlabel(f"Max intensity  [{bu.units_for(variable)}]",
-                  fontsize=14, fontweight="bold")
-    ax.set_ylabel("Density", fontsize=13)
-    ax.tick_params(labelsize=12)
-    ax.set_title(f"Max Intensity across all models", fontsize=11, pad=3, fontweight="bold")
+                  fontsize=16, fontweight="bold")
+    ax.set_ylabel("Density", fontsize=16)
+    ax.tick_params(labelsize=16)
+    ax.set_title(f"Max Intensity across all models", fontsize=18, pad=3, fontweight="bold")
     ax.grid(axis="y", linewidth=0.3, alpha=0.5); ax.set_axisbelow(True)
 
 

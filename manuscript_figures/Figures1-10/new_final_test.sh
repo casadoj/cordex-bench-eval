@@ -76,37 +76,37 @@ echo; echo "============================================================"
 echo "  PART 4 - Combined region plots (climatology + daily)"
 echo "============================================================"
 
-for var in "${VARIABLES[@]}"; do
-  for exp in "${EXPERIMENTS[@]}"; do
-
-    echo; echo ">>> combined  $var / $exp / climatology"
-    pixi run python "$SCRIPTS_DIR/combined_regions_updated.py" \
-        --variable "$var" \
-        --experiment "$exp" \
-        --mode climatology \
-        --truth-root "$TRUTH_ROOT" \
-        --pred-root  "$PRED_ROOT" \
-        --out-dir    "$OUT_ROOT/combined" \
-        --seed "$SEED" --pool "$POOL" --n-sample "$N_SAMPLE" \
-        --bot-pool "$BOT_POOL" --bot-exclude "$BOT_EXCLUDE"
-
-    # Daily: rank 1 (most extreme), 2, 3 for variety without randomness
-    # for rank in 1 2 3; do
-    #   echo; echo ">>> combined  $var / $exp / daily / rank $rank"
-    #   pixi run python "$SCRIPTS_DIR/combined_regions_updated.py" \
-    #       --variable "$var" \
-    #       --experiment "$exp" \
-    #       --mode daily \
-    #       --day-rank "$rank" \
-    #       --truth-root "$TRUTH_ROOT" \
-    #       --pred-root  "$PRED_ROOT" \
-    #       --out-dir    "$OUT_ROOT/combined" \
-    #       --seed "$SEED" --pool "$POOL" --n-sample "$N_SAMPLE" \
-    #       --bot-pool "$BOT_POOL" --bot-exclude "$BOT_EXCLUDE"
-    # done
-
-  done
-done
+#for var in "${VARIABLES[@]}"; do
+#  for exp in "${EXPERIMENTS[@]}"; do
+#
+#    echo; echo ">>> combined  $var / $exp / climatology"
+#    pixi run python "$SCRIPTS_DIR/combined_regions_updated.py" \
+#        --variable "$var" \
+#        --experiment "$exp" \
+#        --mode climatology \
+#        --truth-root "$TRUTH_ROOT" \
+#        --pred-root  "$PRED_ROOT" \
+#        --out-dir    "$OUT_ROOT/combined" \
+#        --seed "$SEED" --pool "$POOL" --n-sample "$N_SAMPLE" \
+#        --bot-pool "$BOT_POOL" --bot-exclude "$BOT_EXCLUDE"
+#
+#    # Daily: rank 1 (most extreme), 2, 3 for variety without randomness
+#     for rank in 1 2 3; do
+#       echo; echo ">>> combined  $var / $exp / daily / rank $rank"
+#       pixi run python "$SCRIPTS_DIR/combined_regions_updated.py" \
+#           --variable "$var" \
+#           --experiment "$exp" \
+#           --mode daily \
+#           --day-rank "$rank" \
+#           --truth-root "$TRUTH_ROOT" \
+#           --pred-root  "$PRED_ROOT" \
+#           --out-dir    "$OUT_ROOT/combined" \
+#           --seed "$SEED" --pool "$POOL" --n-sample "$N_SAMPLE" \
+#           --bot-pool "$BOT_POOL" --bot-exclude "$BOT_EXCLUDE"
+#     done
+#
+#  done
+#done
 
 # ---------------------------------------------------------------------------
 # 4b) COMBINED REGIONS — climate-change signal
