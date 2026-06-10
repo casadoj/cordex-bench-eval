@@ -2,7 +2,7 @@
 #SBATCH --job-name=cordex-dist-cc-prithvi
 #SBATCH --output=logs/dist-cc-%j.out
 #SBATCH --error=logs/dist-cc-%j.err
-#SBATCH --time=12:00:00
+#SBATCH --time=48:00:00
 #SBATCH --mem=48G
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=cordex-ml-benchmark

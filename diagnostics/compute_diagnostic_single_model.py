@@ -49,7 +49,7 @@ EXPERIMENTS = ("ESD_pseudo_reality", "Emulator_hist_future")
 PERIODS = ("historical", "mid_century", "end_century")
 FUTURE_PERIODS = ("mid_century", "end_century")
 FLAVOURS = ("perfect", "imperfect")
-VARIABLES = ("pr", "tasmax")
+VARIABLES = ("pr")#, "tasmax")
 SEASONS = ("DJF", "JJA")
 
 
@@ -458,7 +458,7 @@ def _lhd(pred_counts: np.ndarray, truth_counts: np.ndarray, min_count: int) -> t
         valid = (pred_counts > min_count) & (truth_counts > min_count)
         if not valid.any():
             return np.asarray(np.nan), valid
-        value = np.sqrt(np.mean(10.0 * np.log10(pred_counts[valid] / truth_counts[valid]) ** 2))
+        value = np.sqrt(np.mean(10.0 * np.log10(truth_counts[valid]/pred_counts[valid]) ** 2))
         return np.asarray(value), valid
 
     values = []
@@ -661,7 +661,7 @@ def _build_distribution_dataset(
         min_count_for_lhd=int(min_count),
     )
     if variable == "pr":
-        ds.attrs["lhd_formula"] = "sqrt(mean(10 * log10(pred_count / truth_count) ** 2)) over bins with both counts > min_count"
+        ds.attrs["lhd_formula"] = "sqrt(mean(10 * log10(truth_count/pred_count) ** 2)) over bins with both counts > min_count"
     return ds
 
 
@@ -1114,7 +1114,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--diagnostics",
         nargs="+",
-        default=["distribution", "climate_change"],
+        default=["distribution"],
         choices=["distribution", "climate_change"],
     )
     parser.add_argument("--gcm-mode", default="all", choices=["all", "primary", "evaluation"])
@@ -1145,7 +1145,7 @@ def main() -> None:
     args.pred_root = args.pred_root.expanduser().resolve()
     args.out_root = args.out_root.expanduser().resolve()
 
-    models = ["Prithvi-UNet-orog_old"]#_resolve_models(args)
+    models = _resolve_models(args)#["Prithvi-UNet-orog_old"]#_resolve_models(args)
     print(f"[setup] models={len(models)} ({', '.join(models[:5])}{'...' if len(models) > 5 else ''}) out_root={args.out_root}")
 
     if "distribution" in args.diagnostics:
@@ -1160,20 +1160,20 @@ def main() -> None:
                         f"{type(exc).__name__}: {exc}"
                     )
 
-    if "climate_change" in args.diagnostics:
-        for scenario in _iter_cc_scenarios(args, models):
-            for variable in args.variables:
-                statistics = ["mean", "extreme"]
-                for statistic in statistics:
-                    for season in args.seasons:
-                        try:
-                            _compute_cc_for_scenario(args, scenario, variable, statistic, season)
-                        except Exception as exc:
-                            print(
-                                f"[error] climate_change {scenario.model}|{scenario.domain}|{scenario.experiment}|"
-                                f"{scenario.future_period}|{scenario.flavour}|{scenario.gcm}|"
-                                f"{variable}|{statistic}|{season}: {type(exc).__name__}: {exc}"
-                            )
+    # if "climate_change" in args.diagnostics:
+    #     for scenario in _iter_cc_scenarios(args, models):
+    #         for variable in args.variables:
+    #             statistics = ["mean", "extreme"]
+    #             for statistic in statistics:
+    #                 for season in args.seasons:
+    #                     try:
+    #                         _compute_cc_for_scenario(args, scenario, variable, statistic, season)
+    #                     except Exception as exc:
+    #                         print(
+    #                             f"[error] climate_change {scenario.model}|{scenario.domain}|{scenario.experiment}|"
+    #                             f"{scenario.future_period}|{scenario.flavour}|{scenario.gcm}|"
+    #                             f"{variable}|{statistic}|{season}: {type(exc).__name__}: {exc}"
+    #                         )
 
 
 if __name__ == "__main__":
