@@ -37,10 +37,10 @@ EVALUATION_EXPERIMENTS = [
 ]
 
 # Set to True to recompute metrics even if they already exist
-RECOMPUTE_EXISTING = False
+RECOMPUTE_EXISTING = True
 
 # Model to compute diagnostics for
-model_to_evaluate = "GNN4CD-orog"
+model_to_evaluate = "ANN" # UiBCorrDiff-orog, ViT-IFCAv1, ANN
 
 ########################################################################################
 # LOAD CONFIGURATION AND CATALOG
@@ -61,5 +61,6 @@ for variable in VARIABLE:
                                                     training_experiment=TRAINING_EXPERIMENTS,
                                                     evaluation_experiment=EVALUATION_EXPERIMENTS,
                                                     variable=variable,
+                                                    metrics=["sdii_bias", "rx1day_bias", "txx_bias"],
                                                     recompute_existing=RECOMPUTE_EXISTING)
     print(f"[{variable}] {evaluation_report}")

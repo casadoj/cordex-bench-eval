@@ -23,6 +23,7 @@ from .config import SubmissionWorkflowConfig
 from .data_loader import GroundTruthDataLoader, SubmissionDataLoader
 
 _VALID_SEASONS = frozenset({"winter", "summer", "spring", "autumn"})
+_DEFAULT_N_MEMBERS = 5
 
 class Evaluator:
     """
@@ -153,6 +154,7 @@ class Evaluator:
 
                 metric_config = self.metrics_registry["metrics"][metric_name]
                 member_handling = metric_config.get("member_handling", "mean")
+                n_members = metric_config.get("n_members", None)
                 selection_context = "|".join([
                     submission_name,
                     domain,
@@ -166,16 +168,37 @@ class Evaluator:
                     gt_ds=gt_ds,
                     member_handling=member_handling,
                     selection_context=selection_context,
+                    n_members=n_members,
                 )
-                self._validate_metric_inputs(metric_pred_ds,
-                                             metric_gt_ds,
-                                             variable=variable,
-                                             metric_config=metric_config,
-                                             context_label=selection_context)
 
-                metric_ds = self._compute_metric(pred_ds=metric_pred_ds, gt_ds=metric_gt_ds, variable=variable,
-                                                 metric_name=metric_name, metric_config=metric_config,
-                                                 season=season)
+                if "member" in metric_pred_ds.dims:
+                    member_results = []
+                    for i in range(metric_pred_ds.sizes["member"]):
+                        pred_i = metric_pred_ds.isel(member=i, drop=True)
+                        gt_i = (metric_gt_ds.isel(member=i, drop=True)
+                                if "member" in metric_gt_ds.dims else metric_gt_ds)
+                        self._validate_metric_inputs(pred_i, gt_i,
+                                                     variable=variable,
+                                                     metric_config=metric_config,
+                                                     context_label=selection_context)
+                        result_i = self._compute_metric(pred_ds=pred_i, gt_ds=gt_i,
+                                                        variable=variable,
+                                                        metric_name=metric_name,
+                                                        metric_config=metric_config,
+                                                        season=season)
+                        member_results.append(result_i)
+                    metric_ds = xr.concat(member_results, dim="member").mean(dim="member")
+                else:
+                    self._validate_metric_inputs(metric_pred_ds,
+                                                 metric_gt_ds,
+                                                 variable=variable,
+                                                 metric_config=metric_config,
+                                                 context_label=selection_context)
+                    metric_ds = self._compute_metric(pred_ds=metric_pred_ds, gt_ds=metric_gt_ds,
+                                                     variable=variable,
+                                                     metric_name=metric_name,
+                                                     metric_config=metric_config,
+                                                     season=season)
 
                 # Save metric to NetCDF
                 metric_path.parent.mkdir(parents=True, exist_ok=True)
@@ -454,15 +477,27 @@ class Evaluator:
         return pred_ds, gt_ds
 
     def _apply_member_handling_to_datasets(self, pred_ds: xr.Dataset, gt_ds: xr.Dataset,
-                                           member_handling: str, selection_context: str) -> tuple[xr.Dataset, xr.Dataset]:
-        """Apply member-dimension handling to already-aligned datasets."""
+                                           member_handling: str, selection_context: str,
+                                           n_members: int | None = None) -> tuple[xr.Dataset, xr.Dataset]:
+        """Apply member-dimension handling to already-aligned datasets.
+
+        Parameters
+        ----------
+        n_members : int or None, optional
+            Maximum number of members to retain (only used by ``"member_mean"``).
+            When ``None``, falls back to ``_DEFAULT_N_MEMBERS``.
+        """
         normalized = self._normalize_member_handling(member_handling)
+        if normalized == "member_mean" and n_members is None:
+            n_members = _DEFAULT_N_MEMBERS
         pred_processed = self._reduce_member_dim(pred_ds,
                                                  strategy=normalized,
-                                                 selection_context=f"{selection_context}|pred")
+                                                 selection_context=f"{selection_context}|pred",
+                                                 n_members=n_members)
         gt_processed = self._reduce_member_dim(gt_ds,
                                                strategy=normalized,
-                                               selection_context=f"{selection_context}|gt")
+                                               selection_context=f"{selection_context}|gt",
+                                               n_members=n_members)
         # Datasets are aligned once in _load_and_align_datasets; reducing member does not
         # change time/lat/lon coordinates, so re-aligning here is unnecessary overhead.
         return pred_processed, gt_processed
@@ -625,8 +660,22 @@ class Evaluator:
                                 f"(variable={var_da.sizes[dim_name]}, dataset={ds.sizes[dim_name]})."
                             )
 
-    def _reduce_member_dim(self, ds: xr.Dataset, strategy: str, selection_context: str) -> xr.Dataset:
-        """Reduce/select the member dimension when present."""
+    def _reduce_member_dim(self, ds: xr.Dataset, strategy: str,
+                           selection_context: str, n_members: int | None = None) -> xr.Dataset:
+        """Reduce/select the member dimension when present.
+
+        Parameters
+        ----------
+        ds : xr.Dataset
+            Input dataset, possibly containing a ``member`` dimension.
+        strategy : str
+            Normalized strategy name (``"mean"``, ``"random"``, or ``"member_mean"``).
+        selection_context : str
+            Context string used for deterministic member selection.
+        n_members : int or None, optional
+            Maximum number of members to retain (only used by ``"member_mean"``).
+            When ``None`` or >= available members, all members are kept.
+        """
         if "member" not in ds.dims:
             return ds
 
@@ -637,6 +686,13 @@ class Evaluator:
             idx = self._deterministic_member_index(ds.sizes["member"], selection_context)
             return ds.isel(member=idx, drop=True)
 
+        if strategy == "member_mean":
+            n_available = ds.sizes["member"]
+            if n_members is not None and n_members < n_available:
+                indices = self._deterministic_member_indices(n_available, n_members, selection_context)
+                return ds.isel(member=indices)
+            return ds
+
         raise ValueError(f"Unknown member handling strategy: {strategy}")
 
     def _normalize_member_handling(self, member_handling: str) -> str:
@@ -646,9 +702,11 @@ class Evaluator:
             return "mean"
         if normalized in {"random", "random_member"}:
             return "random"
+        if normalized in {"member_mean"}:
+            return "member_mean"
         raise ValueError(
             f"Unsupported member_handling='{member_handling}'. Expected one of "
-            "'mean', 'ensemble_mean', 'random', or 'random_member'."
+            "'mean', 'ensemble_mean', 'random', 'random_member', or 'member_mean'."
         )
 
     def _deterministic_member_index(self, n_members: int, selection_context: str) -> int:
@@ -657,6 +715,24 @@ class Evaluator:
             raise ValueError("Member dimension must contain at least one value.")
         digest = hashlib.sha256(selection_context.encode("utf-8")).hexdigest()
         return int(digest, 16) % n_members
+
+    def _deterministic_member_indices(self, n_available: int, n_select: int,
+                                      selection_context: str) -> list[int]:
+        """Select *n_select* distinct member indices from [0, n_available) deterministically."""
+        if n_available <= 0:
+            raise ValueError("Member dimension must contain at least one value.")
+        n_select = min(n_select, n_available)
+        indices: list[int] = []
+        seen: set[int] = set()
+        attempt = 0
+        while len(indices) < n_select:
+            ctx = f"{selection_context}|{attempt}"
+            idx = self._deterministic_member_index(n_available, ctx)
+            if idx not in seen:
+                seen.add(idx)
+                indices.append(idx)
+            attempt += 1
+        return sorted(indices)
 
     @staticmethod
     def _extract_failed_file_path(exc: Exception) -> str | None:
