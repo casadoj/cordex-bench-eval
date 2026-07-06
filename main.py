@@ -47,7 +47,7 @@ catalog = SubmissionCatalog(config.catalog_path)
 # VALIDATE STAGED SUBMISSIONS
 
 # Validate one submission by name:
-report = SubmissionValidator(config=config, catalog=catalog).validate_submission("GNN4CD-orog")
+report = SubmissionValidator(config=config, catalog=catalog).validate_submission("CorrDiff-TW1")
 
 print("Submission validation results:")
 status = "VALID" if report.is_valid else "INVALID"
